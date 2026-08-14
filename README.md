@@ -79,6 +79,7 @@ domotica-hogar/
 ```
 ---
 ##🚀 Instrucciones de Ejecución
+
 Este proyecto no requiere de entornos de servidor backend ni compiladores para la etapa actual (Sprint 1):
 Clonar o descargar este repositorio en tu equipo local.
 Navegar a la carpeta raíz del proyecto.
@@ -87,6 +88,7 @@ Abrir el archivo index.html en cualquier navegador web moderno (Google Chrome, F
 ---
 
 ##✅ Funcionalidades Desarrolladas en el Sprint 1
+
 Estructuración Semántica: Maquetación limpia basada en estándares HTML5 (<nav>, <main>, <section>, <article>, <footer>).
 Diseño Adaptaivo (Responsive): Adaptación garantizada para dispositivos móviles, tablets y ordenadores mediante la grilla de Bootstrap.
 Navegación Principal: Barra superior (Navbar) colapsable con accesos directos e íconos interactivos.
@@ -121,6 +123,7 @@ Despliegue final en servidor de producción (GitHub Pages / Firebase Hosting).
 ---
 
 ##🎨 Decisiones de Diseño Adoptadas
+
 Enfoque Mobile-First: Priorización de la correcta visualización en dispositivos móviles utilizando las clases utilitarias de flexbox y la grilla de Bootstrap.
 Coherencia Visual: Tratamiento estandarizado de imágenes mediante object-fit: cover; y alturas fijas en las tarjetas para evitar deformaciones visuales en el layout.
 Jerarquía Visual y Tipográfica: Uso contrastado de encabezados (h1 a h5), insignias (badges) y botones primarios/secundarios para guiar la lectura del usuario hacia las acciones principales.
