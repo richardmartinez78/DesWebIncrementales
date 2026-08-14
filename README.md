@@ -84,6 +84,7 @@ Clonar o descargar este repositorio en tu equipo local.
 Navegar a la carpeta raíz del proyecto.
 Abrir el archivo index.html en cualquier navegador web moderno (Google Chrome, Firefox, Microsoft Edge, Safari).
 (Opcional) Si utilizas Visual Studio Code, se recomienda ejecutar la extensión Live Server haciendo clic derecho sobre index.html y seleccionando Open with Live Server.
+---
 
 ##✅ Funcionalidades Desarrolladas en el Sprint 1
 Estructuración Semántica: Maquetación limpia basada en estándares HTML5 (<nav>, <main>, <section>, <article>, <footer>).
@@ -95,6 +96,7 @@ Grid de Productos Destacados: Tarjetas de productos estandarizadas con títulos,
 Sección de Beneficios: Módulo de tres columnas con la propuesta de valor (Atención al cliente, Envíos garantizados y Soporte técnico).
 Roadmap Interactivo: Modal integrado que permite conocer el alcance y planificación del proyecto a través de sus cuatro Sprints.
 Footer Institucional: Pie de página funcional con derechos reservados y nombre del autor.
+---
 
 ##⏳ Funcionalidades Pendientes (Próximos Sprints)
 Sprint 2:
@@ -116,9 +118,17 @@ Sprint 4:
 Sistema de roles (Cliente / Administrador).
 Pruebas avanzadas de accesibilidad (A11Y) y usabilidad.
 Despliegue final en servidor de producción (GitHub Pages / Firebase Hosting).
+---
 
 ##🎨 Decisiones de Diseño Adoptadas
 Enfoque Mobile-First: Priorización de la correcta visualización en dispositivos móviles utilizando las clases utilitarias de flexbox y la grilla de Bootstrap.
 Coherencia Visual: Tratamiento estandarizado de imágenes mediante object-fit: cover; y alturas fijas en las tarjetas para evitar deformaciones visuales en el layout.
 Jerarquía Visual y Tipográfica: Uso contrastado de encabezados (h1 a h5), insignias (badges) y botones primarios/secundarios para guiar la lectura del usuario hacia las acciones principales.
 Accesibilidad Semántica: Inclusión de etiquetas alt en todas las imágenes del sitio, atributos aria-* en componentes interactivos e íconos SVG independientes de fuentes externas.
+---
+## Créditos y uso de contenido:
+Este repositorio corresponde a un trabajo práctico de índole académico destinado exclusivamente a la evaluación de conocimientos sobre HTML, CSS y Boostrap.
+Las imágenes incluidas se utilizan como recurso de demostración sin fines comerciales ni difusión pública. los derechos de autor de las mismas pertenecen a los respectivos creadores o titulares.
+---
+
+
