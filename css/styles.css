@@ -12,7 +12,7 @@
 .btn-primary:hover,
 .btn-primary:focus {
   background-color: #1c5227;
-  border-color: #1c5227;
+  border-color: #0d2913;
 }
 
 .btn-secondary {
@@ -56,7 +56,7 @@ button:focus-visible,
   width: 32px;
   height: 32px;
   background: var(--accent);
-  color: #172033;
+  color: #121827;
   border-radius: 10px;
   margin-right: 0.35rem;
 }
@@ -70,7 +70,7 @@ button:focus-visible,
   background: #fff;
   border-radius: 24px;
   padding: 12px;
-  box-shadow: 0 20px 50px rgba(38, 109, 53, 0.15);
+  box-shadow: 0 20px 50px rgba(26, 78, 37, 0.15);
 }
 
 .hero-card img {
@@ -129,7 +129,7 @@ button:focus-visible,
 
 .metric span {
   font-size: 0.75rem;
-  color: #18222b;
+  color: #0f220e;
 }
 
 .section-heading {
@@ -179,7 +179,7 @@ button:focus-visible,
   background: repeating-linear-gradient(45deg, #eef1f7 0, #eef1f7 12px, #e5e9f1 12px, #e5e9f1 24px);
   display: grid;
   place-items: center;
-  color: #7a8497;
+  color: #eff0f1;
   font-weight: 700;
 }
 .card {
@@ -201,12 +201,12 @@ button:focus-visible,
 }
 
 .benefits {
-  background: #172033;
+  background: #0f2210;
   color: #fff;
 }
 
 .benefit-card p {
-  color: #aeb7c8;
+  color: #e7eeea;
 }
 
 .footer {
@@ -281,5 +281,20 @@ button:focus-visible,
 }
 
 /* Small utility helpers */
-.text-secondary { color: #506952; }
+.text-secondary { color: #243325; }
 .badge { font-weight: 700; }
+
+/* Botón verde personalizado Domótica */
+.btn-verde-domotica {
+    background-color: #146c43;
+    color: #ffffff;
+    border: 1px solid #146c43;
+    transition: all 0.25s ease-in-out;
+}
+
+.btn-verde-domotica:hover {
+    background-color: #0f5132;
+    border-color: #0f5132;
+    color: #ffffff;
+    box-shadow: 0 4px 10px rgba(20, 108, 67, 0.25);
+}
