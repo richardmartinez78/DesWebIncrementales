@@ -99,7 +99,7 @@ Este proyecto no requiere de entornos de servidor backend ni compiladores para l
 * **Carrusel Destacado:** Diapositivas interactivas para presentar las áreas principales de la tienda (Confort, Seguridad, Iluminación).
 * **Grid de Productos Destacados:** Tarjetas de productos estandarizadas con imágenes proporcionales, títulos, categorías y precios.
 * **Sección de Beneficios:** Módulo de tres columnas con la propuesta de valor (Atención al cliente, Envíos garantizados y Soporte técnico) con contacto directo.
-* **Roadmap Interactivo:** Modal integrado que permite conocer el alcance y planificación del proyecto a través de sus cuatro Sprints.
+* **Roadmap Interactivo:** Editado a modo de preguntas frecuentes.
 * **Footer Institucional:** Pie de página funcional con derechos reservados y autoría del proyecto.
 
 ---
