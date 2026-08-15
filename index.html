@@ -27,15 +27,21 @@
                     <li class="nav-item"><a class="nav-link" data-page="admin" href="admin.html">Administración</a></li>
                 </ul>
                 
-                <!-- Acciones del Navbar (Carrito e Ingresar) -->
-                <div class="d-flex align-items-center gap-2 mt-2 mt-lg-0">
-                    <a href="carrito.html" class="btn btn-outline-light btn-sm d-inline-flex align-items-center gap-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cart" viewBox="0 0 16 16">
-                            <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5M3.102 4l1.313 7h8.17l1.313-7zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4m-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2m7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/>
-                        </svg>
-                        <span>Carrito</span>
-                    </a>
-                    <button class="btn btn-outline-light btn-sm" id="btnLoginPlaceholder">Ingresar</button>
+            <div class="d-flex align-items-center gap-3">
+    <!-- INDICADOR DE CARRITO -->
+   <a href="carrito.html" class="btn text-white position-relative rounded-circle p-2 d-inline-flex align-items-center justify-content-center shadow-sm" title="Carrito de compras" style="width: 42px; height: 42px; background-color: #146c43; border-color: #146c43;">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-cart3" viewBox="0 0 16 16">
+        <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 4H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 13H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5M3.102 4l1.313 7h8.17l1.313-7zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4m-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2m7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/>
+    </svg>
+    <span id="cart-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+        0
+        <span class="visually-hidden">productos en el carrito</span>
+    </span>
+</a>
+
+    <!-- BOTÓN DE INGRESO/PERFIL -->
+    <a href="perfil.html" class="btn btn-primary rounded-pill btn-sm px-3">Ingresar</a>
+</div>
                 </div>
             </div>
         </div>
