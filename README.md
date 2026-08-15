@@ -129,7 +129,7 @@ Este proyecto no requiere de entornos de servidor backend ni compiladores para l
 4. **Accesibilidad y Buenas Prácticas:** Etiquetas `alt` descriptivas en todas las imágenes, atributos `aria-*` para componentes dinámicos e íconos vectoriales SVG incrustados directamente sin dependencias externas pesadas.
 ---
 ## Créditos y uso de contenido:
-Este repositorio corresponde a un trabajo práctico de índole académico destinado exclusivamente a la evaluación de conocimientos sobre HTML, CSS y Boostrap.
+Este repositorio corresponde a un trabajo práctico de índole académico destinado exclusivamente a la evaluación de conocimientos sobre HTML, CSS y Bootstrap.
 Las imágenes incluidas se utilizan como recurso de demostración sin fines comerciales ni difusión pública. los derechos de autor de las mismas pertenecen a los respectivos creadores o titulares.
 ---
 
