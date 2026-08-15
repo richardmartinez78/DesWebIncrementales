@@ -64,7 +64,6 @@ El sitio está dirigido a:
 ---
 
 ## 📁 Estructura General del Proyecto
-```text
 domotica-hogar/
 ├── css/
 │   └── styles.css           # Estilos personalizados adicionales
@@ -77,7 +76,7 @@ domotica-hogar/
 ├── perfil.html              # Perfil de usuario (Próximamente)
 ├── admin.html               # Panel de administración (Próximamente)
 └── README.md                # Documentación del proyecto
-```
+---
 ##🚀 Instrucciones de Ejecución
 Este proyecto no requiere de entornos de servidor backend ni compiladores para la etapa actual (Sprint 1):
 Clonar o descargar este repositorio en tu equipo local.
