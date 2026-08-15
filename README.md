@@ -130,7 +130,7 @@ Este proyecto no requiere de entornos de servidor backend ni compiladores para l
 ---
 ## Créditos y uso de contenido:
 Este repositorio corresponde a un trabajo práctico de índole académico destinado exclusivamente a la evaluación de conocimientos sobre HTML, CSS y Bootstrap.
-Las imágenes incluidas se utilizan como recurso de demostración sin fines comerciales ni difusión pública. los derechos de autor de las mismas pertenecen a los respectivos creadores o titulares.
+Las imágenes incluidas se utilizan como recurso de demostración sin fines comerciales ni difusión pública. Los derechos de autor de las mismas pertenecen a los respectivos creadores o titulares.
 ---
 
 
