@@ -22,9 +22,9 @@ Durante este sprint deberán:
 ## Ejecución
 
 Abrir el proyecto utilizando **Live Server** desde Visual Studio Code.
+---
 # Domótica Hogar — E-commerce de Automatización Inteligente
 
-#ENTREGA 1 - SPRINT 1
 ## 📌 Información del Proyecto
 * **Nombre del Proyecto:** Domótica Hogar
 * **Estudiante:** Richard Martínez
@@ -58,6 +58,7 @@ El sitio está dirigido a:
 * **HTML5:** Estructuración semántica y accesible del contenido.
 * **CSS3:** Estilos personalizados (`css/styles.css`) para reglas de diseño específicas.
 * **Bootstrap v5.3.3:** Framework CSS utilizado para la maquetación *responsive*, grillas (*Grid System*) y componentes UI (Navbar, Carrusel, Modal, Toasts, Cards).
+* **JavaScript (ES6):** Script base (`js/base.js`) para la interactividad de componentes Bootstrap y lógica básica del frontend.
 * **Bootstrap Icons / SVG Vectorial:** Iconografía escalable para llamados a la acción y secciones informativas.
 
 ---
@@ -75,20 +76,16 @@ domotica-hogar/
 ├── carrito.html             # Carrito de compras (Próximamente)
 ├── perfil.html              # Perfil de usuario (Próximamente)
 ├── admin.html               # Panel de administración (Próximamente)
-└── README.md                # Documentación del proyecto.
+└── README.md                # Documentación del proyecto
 ```
----
 ##🚀 Instrucciones de Ejecución
-
 Este proyecto no requiere de entornos de servidor backend ni compiladores para la etapa actual (Sprint 1):
 Clonar o descargar este repositorio en tu equipo local.
 Navegar a la carpeta raíz del proyecto.
 Abrir el archivo index.html en cualquier navegador web moderno (Google Chrome, Firefox, Microsoft Edge, Safari).
 (Opcional) Si utilizas Visual Studio Code, se recomienda ejecutar la extensión Live Server haciendo clic derecho sobre index.html y seleccionando Open with Live Server.
----
 
 ##✅ Funcionalidades Desarrolladas en el Sprint 1
-
 Estructuración Semántica: Maquetación limpia basada en estándares HTML5 (<nav>, <main>, <section>, <article>, <footer>).
 Diseño Adaptaivo (Responsive): Adaptación garantizada para dispositivos móviles, tablets y ordenadores mediante la grilla de Bootstrap.
 Navegación Principal: Barra superior (Navbar) colapsable con accesos directos e íconos interactivos.
@@ -98,7 +95,6 @@ Grid de Productos Destacados: Tarjetas de productos estandarizadas con títulos,
 Sección de Beneficios: Módulo de tres columnas con la propuesta de valor (Atención al cliente, Envíos garantizados y Soporte técnico).
 Roadmap Interactivo: Modal integrado que permite conocer el alcance y planificación del proyecto a través de sus cuatro Sprints.
 Footer Institucional: Pie de página funcional con derechos reservados y nombre del autor.
----
 
 ##⏳ Funcionalidades Pendientes (Próximos Sprints)
 Sprint 2:
@@ -120,10 +116,8 @@ Sprint 4:
 Sistema de roles (Cliente / Administrador).
 Pruebas avanzadas de accesibilidad (A11Y) y usabilidad.
 Despliegue final en servidor de producción (GitHub Pages / Firebase Hosting).
----
 
 ##🎨 Decisiones de Diseño Adoptadas
-
 Enfoque Mobile-First: Priorización de la correcta visualización en dispositivos móviles utilizando las clases utilitarias de flexbox y la grilla de Bootstrap.
 Coherencia Visual: Tratamiento estandarizado de imágenes mediante object-fit: cover; y alturas fijas en las tarjetas para evitar deformaciones visuales en el layout.
 Jerarquía Visual y Tipográfica: Uso contrastado de encabezados (h1 a h5), insignias (badges) y botones primarios/secundarios para guiar la lectura del usuario hacia las acciones principales.
