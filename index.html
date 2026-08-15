@@ -114,7 +114,14 @@
                         <p class="lead text-success"></p><strong>Descubre soluciones de automatización pensadas para tu estilo de vida.</strong></p>
                         <div class="d-flex gap-2 flex-wrap">
                             <a class="btn btn-primary btn-lg" href="catalogo.html">Explorar ofertas</a>
-                            <button class="btn btn-outline-dark btn-lg" id="btnProjectInfo">Ver alcance</button>
+                           <!-- BOTÓN: PREGUNTAS FRECUENTES -->
+<button type="button" class="btn btn-sm rounded-pill text-white d-inline-flex align-items-center gap-2" style="background-color: #146c43; border-color: #146c43;" data-bs-toggle="modal" data-bs-target="#modalFaq">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-question-circle" viewBox="0 0 16 16">
+        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+        <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286m1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94"/>
+    </svg>
+    Preguntas Frecuentes
+</button>
                         </div>
                         <div class="row g-3 mt-4">
                             <div class="col-4">
@@ -154,10 +161,10 @@
                     <h2 class="fw-bold">Productos destacados</h2>
                 </div>
             </div>
-           <div class="student-task border-primary bg-light p-3 rounded-3 mb-4">
-    <div class="student-task-number bg-primary text-white">★</div>
+         <div class="student-task bg-light p-3 rounded-3 mb-4" style="border-left: 4px solid #146c43;">
+    <div class="student-task-number text-white" style="background-color: #146c43;">★</div>
     <div>
-        <h3 class="h5 text-primary fw-bold">Tecnología para tu confort</h3>
+        <h3 class="h5 fw-bold" style="color: #146c43;">Tecnología para tu confort</h3>
         <p class="mb-0 text-secondary">Explora nuestros dispositivos destacados y transforma la manera en que interactúas con tu espacio. Eficiencia, seguridad y confort en una sola selección.</p>
     </div>
 </div>
@@ -173,6 +180,8 @@
                  style="height: 200px; object-fit: cover;">
             <div class="p-3">
                 <span class="eyebrow text-uppercase text-muted small fw-bold">Entretenimiento</span>
+                <span class="badge text-bg-warning-subtle text-warning-emphasis border border-warning-subtle fw-semibold">
+    ¡Últimas 3 un.!</span>
                 <h3 class="h5 mt-2">Echo Dot 5ª Generación</h3>
                 <p class="text-secondary small">Tu asistente de voz para control inteligente.</p>
                 <div class="d-flex justify-content-between align-items-center mt-3">
@@ -194,6 +203,8 @@
                  style="height: 200px; object-fit: cover;">
             <div class="p-3">
                 <span class="eyebrow text-uppercase text-muted small fw-bold">Confort</span>
+                <span class="badge text-bg-warning-subtle text-warning-emphasis border border-warning-subtle fw-semibold">
+    ¡Últimas 5 un.!</span>
                 <h3 class="h5 mt-2">Sistema de Automatización Domótica</h3>
                 <p class="text-secondary small">Controla la temperatura, la iluminación y más con inteligencia y ahorro.</p>
                 <div class="d-flex justify-content-between align-items-center mt-3">
@@ -213,10 +224,12 @@
                  style="height: 200px; object-fit: cover;">
             <div class="p-3">
                 <span class="eyebrow text-uppercase text-muted small fw-bold">Seguridad</span>
+                <span class="badge text-bg-success-subtle text-success border border-success-subtle fw-semibold">
+    Stock: 8 un.</span>
                 <h3 class="h5 mt-2">Cámara seguridad IP exterior. TP-Link</h3>
                 <p class="text-secondary small">Monitorea tu hogar con visión nocturna y alertas instantáneas.</p>
                 <div class="d-flex justify-content-between align-items-center mt-3">
-                    <strong>$ 1350</strong>
+                    <strong>$ 2350</strong>
                     <button class="btn btn-primary btn-sm" disabled>Ver producto</button>
                 </div>
             </div>
@@ -232,10 +245,12 @@
                  style="height: 200px; object-fit: cover;">
             <div class="p-3">
                 <span class="eyebrow text-uppercase text-muted small fw-bold">Hogar</span>
-                <h3 class="h5 mt-2">Lámpara Smart Inteligente RGB</h3>
+                <span class="badge text-bg-success-subtle text-success border border-success-subtle fw-semibold">
+    Stock: 15 un.</span>
+                <h3 class="h5 mt-2">X2 Lámpara Smart Inteligente RGB</h3>
                 <p class="text-secondary small">Ambientes adaptables con control desde la palma de tu mano.</p>
                 <div class="d-flex justify-content-between align-items-center mt-3">
-                    <strong>$ 450</strong>
+                    <strong>$ 990</strong>
                     <button class="btn btn-primary btn-sm" disabled>Ver producto</button>
                 </div>
             </div>
@@ -309,47 +324,89 @@
     </div>
 </section>
 
-        <!-- Modal -->
-        <div class="modal fade" id="projectInfoModal" tabindex="-1">
-            <div class="modal-dialog modal-lg modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h2 class="modal-title fs-5">Roadmap</h2>
-                        <button class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p>El proyecto se desarrollará progresivamente en cuatro sprints.</p>
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <div class="sprint-summary">
-                                    <strong>Sprint 1 · Semanas 1 a 4</strong>
-                                    <span>Inicio, identidad visual, HTML, CSS, Bootstrap y diseño responsive</span>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="sprint-summary">
-                                    <strong>Sprint 2 · Semanas 5 a 8</strong>
-                                    <span>Catálogo dinámico, detalle de producto, carrito y LocalStorage</span>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="sprint-summary">
-                                    <strong>Sprint 3 · Semanas 9 a 12</strong>
-                                    <span>Firebase, autenticación, perfil, pedidos y administración inicial</span>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="sprint-summary">
-                                    <strong>Sprint 4 · Semanas 13 a 15</strong>
-                                    <span>Seguridad, roles, pruebas, accesibilidad, despliegue y presentación</span>
-                                </div>
+<!-- MODAL: PREGUNTAS FRECUENTES -->
+<div class="modal fade" id="modalFaq" tabindex="-1" aria-labelledby="modalFaqLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="modalFaqLabel">Preguntas Frecuentes</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body py-4">
+                <div class="accordion accordion-flush" id="accordionFaq">
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#faqMetodosPago">
+                                ¿Qué métodos de pago aceptan?
+                            </button>
+                        </h2>
+                        <div id="faqMetodosPago" class="accordion-collapse collapse show" data-bs-parent="#accordionFaq">
+                            <div class="accordion-body text-secondary">
+                                Aceptamos todas las tarjetas de débito o crédito procesadas a través de <strong>Mercado Pago</strong>, además de <strong>Giros</strong>, <strong>Depósitos bancarios</strong> y pagos en <strong>Efectivo</strong> (Abitab / Redpagos).
                             </div>
                         </div>
                     </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#faqEnvios">
+                                ¿Cómo funcionan los envíos?
+                            </button>
+                        </h2>
+                        <div id="faqEnvios" class="accordion-collapse collapse" data-bs-parent="#accordionFaq">
+                            <div class="accordion-body text-secondary">
+                                Ofrecemos <strong>envíos en la ciudad en el día y sin costo</strong>. Para el resto de las localidades del país, las entregas se realizan entre <strong>24 y 48 horas hábiles</strong> a través de <strong>UES Express E-commerce</strong>.
+                            </div>
+                        </div>
+                    
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#faqRut">
+                                ¿Emiten factura con RUT?
+                            </button>
+                        </h2>
+                        <div id="faqRut" class="accordion-collapse collapse" data-bs-parent="#accordionFaq">
+                            <div class="accordion-body text-secondary">
+                                Sí, emitimos factura con RUT para empresas. Solo debes ingresar los datos de facturación (RUT y Razón Social) al momento de finalizar tu compra o solicitarla a nuestro equipo de atención.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#faqInstalacion">
+                                ¿Necesito conocimientos técnicos para instalar los productos?
+                            </button>
+                        </h2>
+                        <div id="faqInstalacion" class="accordion-collapse collapse" data-bs-parent="#accordionFaq">
+                            <div class="accordion-body text-secondary">
+                                No. La mayoría de nuestros dispositivos son <em>Plug & Play</em> y se configuran fácilmente desde la aplicación móvil en pocos minutos.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#faqCompatibilidad">
+                                ¿Son compatibles con Alexa y Google Home?
+                            </button>
+                        </h2>
+                        <div id="faqCompatibilidad" class="accordion-collapse collapse" data-bs-parent="#accordionFaq">
+                            <div class="accordion-body text-secondary">
+                                Sí, todos los productos de nuestro catálogo cuentan con integración oficial para asistentes de voz Alexa, Google Assistant y Siri Shortcuts.
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+            </div>
         </div>
-
+    </div>
+</div>
     </main>
 
     <!-- Footer -->
