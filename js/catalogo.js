@@ -36,3 +36,47 @@ const productos = [
     imagen: "https://http2.mlstatic.com/D_NQ_NP_2X_995627-MLU92600735337_092025-F.webp"
   }
 ];
+const contenedorCatalogo = document.querySelector("#contenedor-catalogo");
+
+function renderizarCatalogo(listaProductos) {
+  contenedorCatalogo.innerHTML = "";
+
+  listaProductos.forEach(producto => {
+    const columna = document.createElement("div");
+    columna.className = "col-md-6 col-xl-3";
+
+    // Lógica para renderizar la etiqueta de stock con los colores de la marca
+    const badgeStock = producto.stock <= 5
+      ? `<span class="badge text-bg-warning-subtle text-warning-emphasis border border-warning-subtle fw-semibold">¡Últimas ${producto.stock} un.!</span>`
+      : `<span class="badge text-bg-success-subtle text-success border border-success-subtle fw-semibold">Stock: ${producto.stock} un.</span>`;
+
+    columna.innerHTML = `
+      <article class="placeholder-product border rounded-3 overflow-hidden bg-white shadow-sm h-100 d-flex flex-column justify-content-between">
+        <div>
+          <img src="${producto.imagen}" class="img-fluid w-100" alt="${producto.nombre}" style="height: 200px; object-fit: cover;">
+          <div class="p-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="eyebrow text-uppercase text-muted small fw-bold">${producto.categoria}</span>
+              ${badgeStock}
+            </div>
+            <h3 class="h5 mt-2">${producto.nombre}</h3>
+            <p class="text-secondary small mb-3">${producto.descripcion}</p>
+          </div>
+        </div>
+        <div class="p-3 pt-0">
+          <div class="d-flex justify-content-between align-items-center">
+            <strong>$ ${producto.precio}</strong>
+            <a href="producto.html?id=${producto.id}" class="btn text-white rounded-pill px-3 shadow-sm" style="background-color: #146c43; border-color: #146c43;">
+              Ver detalle
+            </a>
+          </div>
+        </div>
+      </article>
+    `;
+
+    contenedorCatalogo.appendChild(columna);
+  });
+}
+
+// Ejecutar la función al cargar
+renderizarCatalogo(productos);
