@@ -51,6 +51,7 @@ function renderizarCatalogo(listaProductos) {
       : `<span class="badge text-bg-success-subtle text-success border border-success-subtle fw-semibold">Stock: ${producto.stock} un.</span>`;
 
     columna.innerHTML = `
+    <a href="producto.html?id=${producto.id}" class="btn btn-success">Ver detalle</a>
       <article class="placeholder-product border rounded-3 overflow-hidden bg-white shadow-sm h-100 d-flex flex-column justify-content-between">
         <div>
           <img src="${producto.imagen}" class="img-fluid w-100" alt="${producto.nombre}" style="height: 200px; object-fit: cover;">
