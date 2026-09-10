@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang='es'>
+<html lang="es">
 
 <head>
     <meta charset="utf-8">
@@ -9,9 +9,9 @@
     <title>Domótica Hogar | Catálogo</title>
 </head>
 
-<body class='d-flex flex-column min-vh-100' data-page='catalogo'>
+<body class="d-flex flex-column min-vh-100" data-page="catalogo">
 
-    <!-- Navbar original de Nexo Store -->
+    <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark sticky-top shadow-sm">
         <div class="container">
             <a class="navbar-brand fw-bold" href="index.html"><span class="brand-mark">DH</span> Domótica Hogar</a>
@@ -32,39 +32,53 @@
         </div>
     </nav>
 
-    <!-- Contenido principal con el catálogo -->
-    <main class='flex-grow-1'>
-        <div class="container py-5">
+    <!-- Sección Principal del Catálogo -->
+    <main class="flex-grow-1">
+        <section class="container py-5">
             <div class="section-heading mb-4">
                 <h1 class="fw-bold">Catálogo de Productos</h1>
-                <p class="text-secondary">Explora nuestros dispositivos de domótica para automatizar tu hogar.</p>
+                <p class="text-secondary">Explora nuestros dispositivos inteligentes para automatizar tu hogar.</p>
             </div>
 
-            <!-- Contenedor donde se cargarán dinámicamente las tarjetas mediante JS -->
+            <!-- Panel de Búsqueda y Filtros -->
+            <div class="card border-0 shadow-sm p-3 mb-4 bg-white rounded-3">
+                <div class="row g-3 align-items-center">
+                    <!-- Buscador por Texto -->
+                    <div class="col-md-5">
+                        <label for="input-busqueda" class="form-label small fw-semibold text-secondary mb-1">Buscar producto</label>
+                        <input type="search" id="input-busqueda" class="form-control" placeholder="Ej: Cámara, Alexa, Lámpara...">
+                    </div>
+
+                    <!-- Filtro por Categoría -->
+                    <div class="col-md-4">
+                        <label for="select-categoria" class="form-label small fw-semibold text-secondary mb-1">Categoría</label>
+                        <select id="select-categoria" class="form-select">
+                            <option value="todas">Todas las categorías</option>
+                        </select>
+                    </div>
+
+                    <!-- Botón Limpiar -->
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="button" id="btn-limpiar" class="btn btn-outline-secondary w-100">
+                            Limpiar filtros
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contenedor dinámico de productos -->
             <div id="contenedor-catalogo" class="row g-4"></div>
-        </div>
+        </section>
     </main>
 
-    <!-- Footer original -->
+    <!-- Footer -->
     <footer class="footer py-4 mt-auto">
         <div class="container d-flex justify-content-between flex-wrap gap-2">
-            <span>© 2026 Nexo Store · Proyecto integrador</span>
+            <span>© 2026 Domótica Hogar · Proyecto integrador</span>
             <span>Versión inicial para estudiantes</span>
         </div>
     </footer>
 
-    <!-- Contenedor para notificaciones Toast -->
-    <div class="toast-container position-fixed bottom-0 end-0 p-3">
-        <div id="appToast" class="toast">
-            <div class="toast-header">
-                <strong class="me-auto">Nexo Store</strong>
-                <button class="btn-close" data-bs-dismiss="toast"></button>
-            </div>
-            <div class="toast-body" id="toastMessage"></div>
-        </div>
-    </div>
-
-    <!-- Scripts Javascript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/base.js"></script>
     <script src="js/productos.js"></script>
