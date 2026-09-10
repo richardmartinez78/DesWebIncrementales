@@ -1,8 +1,9 @@
+// Arreglo de productos con su identificador único (id) y detalles
 const productos = [
   {
     id: "p1",
     nombre: "Echo Dot 5ª Generación",
-    descripcion: "Tu asistente de voz para control inteligente de tu hogar con bocina integradas y altavoz de excelente calidad.",
+    descripcion: "Tu asistente de voz para control inteligente de tu hogar con bocina integrada.",
     categoria: "Entretenimiento",
     precio: 3500,
     stock: 3,
@@ -11,7 +12,7 @@ const productos = [
   {
     id: "p2",
     nombre: "Sistema de Automatización Domótica",
-    descripcion: "Controla la temperatura, iluminación y más con ahorro energético y automatizaciones programables.",
+    descripcion: "Controla la temperatura, iluminación y más con ahorro energético y automatizaciones.",
     categoria: "Confort",
     precio: 1990,
     stock: 5,
@@ -20,7 +21,7 @@ const productos = [
   {
     id: "p3",
     nombre: "Cámara seguridad IP exterior TP-Link",
-    descripcion: "Monitorea tu hogar con visión nocturna, detección de movimiento y alertas instantáneas a tu smartphone.",
+    descripcion: "Monitorea tu hogar con visión nocturna, detección de movimiento y alertas instantáneas.",
     categoria: "Seguridad",
     precio: 2350,
     stock: 8,
@@ -29,7 +30,7 @@ const productos = [
   {
     id: "p4",
     nombre: "X2 Lámpara Smart Inteligente RGB",
-    descripcion: "Ambientes adaptables con control inteligente de color e intensidad desde la palma de tu mano.",
+    descripcion: "Ambientes adaptables con control inteligente de color e intensidad desde tu smartphone.",
     categoria: "Hogar",
     precio: 990,
     stock: 15,

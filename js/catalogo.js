@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 2. Función para renderizar tarjetas en el catálogo
   function renderizarProductos(lista) {
+    // Limpiar el contenedor antes de dibujar
     contenedorCatalogo.innerHTML = "";
 
     // Si el arreglo filtrado está vacío, mostrar mensaje sin coincidencias
@@ -44,6 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const columna = document.createElement("div");
       columna.className = "col-md-6 col-xl-3";
 
+      // Distintivo de stock según disponibilidad
       const badgeStock = producto.stock <= 5
         ? `<span class="badge text-bg-warning-subtle text-warning-emphasis border border-warning-subtle fw-semibold">¡Últimas ${producto.stock} un.!</span>`
         : `<span class="badge text-bg-success-subtle text-success border border-success-subtle fw-semibold">Stock: ${producto.stock} un.</span>`;
@@ -82,11 +84,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const categoriaSeleccionada = selectCategoria.value;
 
     const productosFiltrados = productos.filter(p => {
-      // Coincidencia por nombre o descripción
       const coincideTexto = p.nombre.toLowerCase().includes(texto) ||
                             p.descripcion.toLowerCase().includes(texto);
 
-      // Coincidencia por categoría
       const coincideCategoria = categoriaSeleccionada === "todas" || p.categoria === categoriaSeleccionada;
 
       return coincideTexto && coincideCategoria;
@@ -102,12 +102,12 @@ document.addEventListener("DOMContentLoaded", () => {
     renderizarProductos(productos);
   }
 
-  // 5. Escuchadores de eventos (Event Listeners)
+  // 5. Escuchadores de eventos
   inputBusqueda.addEventListener("input", aplicarFiltros);
   selectCategoria.addEventListener("change", aplicarFiltros);
   btnLimpiar.addEventListener("click", limpiarFiltros);
 
-  // Inicialización
+  // Inicialización al cargar la vista
   cargarCategorias();
   renderizarProductos(productos);
 });

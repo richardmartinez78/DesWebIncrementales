@@ -14,7 +14,9 @@
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark sticky-top shadow-sm">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="index.html"><span class="brand-mark">DH</span> Domótica Hogar</a>
+            <a class="navbar-brand fw-bold" href="index.html">
+                <span class="brand-mark">DH</span> Domótica Hogar
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -32,7 +34,7 @@
         </div>
     </nav>
 
-    <!-- Sección Principal del Catálogo -->
+    <!-- Contenido Principal del Catálogo -->
     <main class="flex-grow-1">
         <section class="container py-5">
             <div class="section-heading mb-4">
@@ -40,24 +42,19 @@
                 <p class="text-secondary">Explora nuestros dispositivos inteligentes para automatizar tu hogar.</p>
             </div>
 
-            <!-- Panel de Búsqueda y Filtros -->
+            <!-- Panel de Filtros y Búsqueda -->
             <div class="card border-0 shadow-sm p-3 mb-4 bg-white rounded-3">
                 <div class="row g-3 align-items-center">
-                    <!-- Buscador por Texto -->
                     <div class="col-md-5">
                         <label for="input-busqueda" class="form-label small fw-semibold text-secondary mb-1">Buscar producto</label>
                         <input type="search" id="input-busqueda" class="form-control" placeholder="Ej: Cámara, Alexa, Lámpara...">
                     </div>
-
-                    <!-- Filtro por Categoría -->
                     <div class="col-md-4">
                         <label for="select-categoria" class="form-label small fw-semibold text-secondary mb-1">Categoría</label>
                         <select id="select-categoria" class="form-select">
                             <option value="todas">Todas las categorías</option>
                         </select>
                     </div>
-
-                    <!-- Botón Limpiar -->
                     <div class="col-md-3 d-flex align-items-end">
                         <button type="button" id="btn-limpiar" class="btn btn-outline-secondary w-100">
                             Limpiar filtros
@@ -66,7 +63,7 @@
                 </div>
             </div>
 
-            <!-- Contenedor dinámico de productos -->
+            <!-- Contenedor dinámico de las tarjetas -->
             <div id="contenedor-catalogo" class="row g-4"></div>
         </section>
     </main>
@@ -79,6 +76,7 @@
         </div>
     </footer>
 
+    <!-- Scripts JavaScript vinculados externamente -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/base.js"></script>
     <script src="js/productos.js"></script>
