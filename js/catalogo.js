@@ -7,6 +7,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 1. Cargar dinámicamente las categorías únicas en el selector <select>
   function cargarCategorias() {
+    if (!selectCategoria || typeof productos === "undefined") return;
+
     const categoriasUnicas = [...new Set(productos.map(p => p.categoria))];
     categoriasUnicas.forEach(cat => {
       const option = document.createElement("option");
@@ -18,6 +20,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 2. Función para renderizar tarjetas en el catálogo
   function renderizarProductos(lista) {
+    if (!contenedorCatalogo) return;
+
     // Limpiar el contenedor antes de dibujar
     contenedorCatalogo.innerHTML = "";
 
@@ -64,11 +68,16 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
           </div>
           <div class="p-3 pt-0">
-            <div class="d-flex justify-content-between align-items-center">
-              <strong>$ ${producto.precio}</strong>
-              <a href="producto.html?id=${producto.id}" class="btn text-white rounded-pill px-3 shadow-sm" style="background-color: #146c43; border-color: #146c43;">
-                Ver detalle
-              </a>
+            <div class="d-flex justify-content-between align-items-center gap-2">
+              <strong class="fs-5">$ ${producto.precio}</strong>
+              <div class="d-flex gap-1">
+                <a href="producto.html?id=${producto.id}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                  Detalle
+                </a>
+                <button type="button" class="btn btn-sm btn-agregar-cart text-white rounded-pill px-3" data-id="${producto.id}" style="background-color: #146c43;">
+                  + Carrito
+                </button>
+              </div>
             </div>
           </div>
         </article>
@@ -76,12 +85,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
       contenedorCatalogo.appendChild(columna);
     });
+
+    // Asignar eventos a los nuevos botones de agregar al carrito
+    asignarEventosAgregar();
   }
 
-  // 3. Función principal de filtrado que combina texto y categoría
+  // 3. Conectar los botones "+ Carrito" con la función global de carrito-state.js
+  function asignarEventosAgregar() {
+    const botonesAgregar = document.querySelectorAll(".btn-agregar-cart");
+    botonesAgregar.forEach(boton => {
+      boton.addEventListener("click", (e) => {
+        const idProducto = e.currentTarget.getAttribute("data-id");
+
+        if (typeof agregarAlCarrito === "function") {
+          const respuesta = agregarAlCarrito(idProducto, 1);
+          alert(respuesta.mensaje);
+        } else {
+          console.error("La función agregarAlCarrito no está disponible. Revisa que js/carrito-state.js esté cargado.");
+        }
+      });
+    });
+  }
+
+  // 4. Función principal de filtrado que combina texto y categoría
   function aplicarFiltros() {
-    const texto = inputBusqueda.value.trim().toLowerCase();
-    const categoriaSeleccionada = selectCategoria.value;
+    if (typeof productos === "undefined") return;
+
+    const texto = inputBusqueda ? inputBusqueda.value.trim().toLowerCase() : "";
+    const categoriaSeleccionada = selectCategoria ? selectCategoria.value : "todas";
 
     const productosFiltrados = productos.filter(p => {
       const coincideTexto = p.nombre.toLowerCase().includes(texto) ||
@@ -95,19 +126,23 @@ document.addEventListener("DOMContentLoaded", () => {
     renderizarProductos(productosFiltrados);
   }
 
-  // 4. Función para limpiar filtros
+  // 5. Función para limpiar filtros
   function limpiarFiltros() {
-    inputBusqueda.value = "";
-    selectCategoria.value = "todas";
-    renderizarProductos(productos);
+    if (inputBusqueda) inputBusqueda.value = "";
+    if (selectCategoria) selectCategoria.value = "todas";
+    if (typeof productos !== "undefined") {
+      renderizarProductos(productos);
+    }
   }
 
-  // 5. Escuchadores de eventos
-  inputBusqueda.addEventListener("input", aplicarFiltros);
-  selectCategoria.addEventListener("change", aplicarFiltros);
-  btnLimpiar.addEventListener("click", limpiarFiltros);
+  // 6. Escuchadores de eventos (Event Listeners)
+  if (inputBusqueda) inputBusqueda.addEventListener("input", aplicarFiltros);
+  if (selectCategoria) selectCategoria.addEventListener("change", aplicarFiltros);
+  if (btnLimpiar) btnLimpiar.addEventListener("click", limpiarFiltros);
 
   // Inicialización al cargar la vista
   cargarCategorias();
-  renderizarProductos(productos);
+  if (typeof productos !== "undefined") {
+    renderizarProductos(productos);
+  }
 });
