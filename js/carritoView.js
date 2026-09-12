@@ -1,29 +1,21 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const contenedor = document.querySelector("#contenedor-carrito");
-  const btnConfirmar = document.querySelector("#btn-confirmar");
+  const contenedor = document.getElementById("contenedor-carrito");
+  const subtotalEl = document.getElementById("resumen-subtotal");
+  const totalEl = document.getElementById("resumen-total");
+  const btnConfirmar = document.getElementById("btn-confirmar");
 
-  function renderizarVistaCarrito() {
-    // Re-obtener referencias directas del DOM
-    const subtotalEl = document.querySelector("#resumen-subtotal");
-    const totalEl = document.querySelector("#resumen-total");
+  if (!contenedor) return;
 
+  function renderizarCarrito() {
     const carrito = obtenerCarrito();
+    contenedor.innerHTML = "";
 
-    if (!carrito || carrito.length === 0) {
-      if (contenedor) {
-        contenedor.innerHTML = `
-          <div class="card border-0 shadow-sm p-5 text-center rounded-3 bg-white">
-            <span class="fs-1 d-block mb-3">🛒</span>
-            <h2 class="h4 fw-bold">Tu carrito está vacío</h2>
-            <p class="text-secondary mb-4">Parece que aún no has añadido dispositivos a tu pedido.</p>
-            <div>
-              <a href="catalogo.html" class="btn text-white rounded-pill px-4" style="background-color: #146c43;">
-                Explorar catálogo
-              </a>
-            </div>
-          </div>
-        `;
-      }
+    if (carrito.length === 0) {
+      contenedor.innerHTML = `
+        <div class="alert alert-info text-center py-4">
+          <h4>Tu carrito está vacío</h4>
+          <a href="catalogo.html" class="btn btn-outline-dark mt-2">Explorar catálogo</a>
+        </div>`;
       if (subtotalEl) subtotalEl.textContent = "$ 0";
       if (totalEl) totalEl.textContent = "$ 0";
       if (btnConfirmar) btnConfirmar.disabled = true;
@@ -31,96 +23,71 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (btnConfirmar) btnConfirmar.disabled = false;
-
-    let totalGeneral = 0;
-    let html = `<div class="card border-0 shadow-sm p-3 rounded-3 bg-white">`;
+    let total = 0;
 
     carrito.forEach(item => {
-      const precio = Number(item.precio) || 0;
-      const cantidad = Number(item.cantidad) || 0;
-      const subtotalItem = precio * cantidad;
+      const itemSubtotal = item.precio * item.cantidad;
+      total += itemSubtotal;
 
-      totalGeneral += subtotalItem;
-
-      const deshabilitarMas = cantidad >= item.stock ? "disabled" : "";
-
-      html += `
-        <div class="d-flex align-items-center justify-content-between border-bottom py-3 flex-wrap gap-3">
-          <div class="d-flex align-items-center gap-3" style="min-width: 220px;">
-            <img src="${item.imagen}" alt="${item.nombre}" class="rounded-3" style="width: 70px; height: 70px; object-fit: cover;">
-            <div>
-              <h3 class="h6 fw-bold mb-1">${item.nombre}</h3>
-              <span class="text-muted small">$ ${precio.toLocaleString()} c/u</span>
-            </div>
+      const card = document.createElement("div");
+      card.className = "card border-0 shadow-sm p-3 mb-3 bg-white rounded-3";
+      card.innerHTML = `
+        <div class="row g-3 align-items-center">
+          <div class="col-3 col-md-2">
+            <img src="${item.imagen}" class="img-fluid rounded" alt="${item.nombre}">
           </div>
-
-          <div class="d-flex align-items-center gap-2">
+          <div class="col-9 col-md-4">
+            <h5 class="h6 fw-bold mb-1">${item.nombre}</h5>
+            <span class="text-secondary small">$ ${item.precio.toLocaleString()} c/u</span>
+          </div>
+          <div class="col-6 col-md-3 d-flex align-items-center gap-2">
             <button class="btn btn-sm btn-outline-secondary btn-restar" data-id="${item.id}">-</button>
-            <span class="fw-bold px-2">${cantidad}</span>
-            <button class="btn btn-sm btn-outline-secondary btn-sumar" data-id="${item.id}" ${deshabilitarMas}>+</button>
+            <span class="fw-semibold px-2">${item.cantidad}</span>
+            <button class="btn btn-sm btn-outline-secondary btn-sumar" data-id="${item.id}">+</button>
           </div>
-
-          <div class="d-flex align-items-center gap-3">
-            <span class="fw-bold text-dark" style="min-width: 90px; text-align: right;">$ ${subtotalItem.toLocaleString()}</span>
-            <button class="btn btn-sm btn-outline-danger border-0 btn-eliminar" data-id="${item.id}" title="Eliminar producto">
-              🗑️
-            </button>
+          <div class="col-6 col-md-3 text-end">
+            <span class="fw-bold d-block">$ ${itemSubtotal.toLocaleString()}</span>
+            <button class="btn btn-sm text-danger p-0 border-0 btn-eliminar" data-id="${item.id}">Eliminar</button>
           </div>
         </div>
       `;
+      contenedor.appendChild(card);
     });
 
-    html += `
-      <div class="text-end pt-3">
-        <button id="btn-vaciar" class="btn btn-sm btn-outline-secondary">Vaciar carrito</button>
-      </div>
-    </div>`;
+    if (subtotalEl) subtotalEl.textContent = `$ ${total.toLocaleString()}`;
+    if (totalEl) totalEl.textContent = `$ ${total.toLocaleString()}`;
 
-    if (contenedor) contenedor.innerHTML = html;
+    // Eventos
+    contenedor.querySelectorAll(".btn-sumar").forEach(b => {
+      b.addEventListener("click", e => {
+        cambiarCantidad(e.target.getAttribute("data-id"), 1);
+        renderizarCarrito();
+      });
+    });
 
-    // Actualizar montos en la interfaz
-    if (subtotalEl) subtotalEl.textContent = `$ ${totalGeneral.toLocaleString()}`;
-    if (totalEl) totalEl.textContent = `$ ${totalGeneral.toLocaleString()}`;
+    contenedor.querySelectorAll(".btn-restar").forEach(b => {
+      b.addEventListener("click", e => {
+        cambiarCantidad(e.target.getAttribute("data-id"), -1);
+        renderizarCarrito();
+      });
+    });
 
-    asignarEventos();
+    contenedor.querySelectorAll(".btn-eliminar").forEach(b => {
+      b.addEventListener("click", e => {
+        eliminarDelCarrito(e.target.getAttribute("data-id"));
+        renderizarCarrito();
+        mostrarToast("Producto eliminado del carrito");
+      });
+    });
   }
 
-  function asignarEventos() {
-    document.querySelectorAll(".btn-sumar").forEach(btn => {
-      btn.addEventListener("click", (e) => {
-        const id = e.currentTarget.getAttribute("data-id");
-        cambiarCantidad(id, 1);
-        renderizarVistaCarrito();
-      });
-    });
-
-    document.querySelectorAll(".btn-restar").forEach(btn => {
-      btn.addEventListener("click", (e) => {
-        const id = e.currentTarget.getAttribute("data-id");
-        cambiarCantidad(id, -1);
-        renderizarVistaCarrito();
-      });
-    });
-
-    document.querySelectorAll(".btn-eliminar").forEach(btn => {
-      btn.addEventListener("click", (e) => {
-        const id = e.currentTarget.getAttribute("data-id");
-        eliminarDelCarrito(id);
-        renderizarVistaCarrito();
-      });
-    });
-
-    document.querySelector("#btn-vaciar")?.addEventListener("click", () => {
+  if (btnConfirmar) {
+    btnConfirmar.addEventListener("click", () => {
       vaciarCarrito();
-      renderizarVistaCarrito();
+      renderizarCarrito();
+      mostrarToast("¡Gracias por tu compra! Tu pedido fue procesado.");
     });
   }
 
-  btnConfirmar?.addEventListener("click", () => {
-    alert("¡Gracias por tu compra! Esta es una simulación de pedido.");
-    vaciarCarrito();
-    renderizarVistaCarrito();
-  });
-
-  renderizarVistaCarrito();
+  renderizarCarrito();
 });

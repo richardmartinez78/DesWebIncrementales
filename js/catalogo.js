@@ -1,16 +1,15 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Referencias a elementos del DOM
-  const contenedorCatalogo = document.querySelector("#contenedor-catalogo");
-  const inputBusqueda = document.querySelector("#input-busqueda");
-  const selectCategoria = document.querySelector("#select-categoria");
-  const btnLimpiar = document.querySelector("#btn-limpiar");
+  const contenedor = document.getElementById("contenedor-catalogo");
+  const selectCategoria = document.getElementById("select-categoria");
+  const inputBusqueda = document.getElementById("input-busqueda");
+  const btnLimpiar = document.getElementById("btn-limpiar");
 
-  // 1. Cargar dinámicamente las categorías únicas en el selector <select>
+  if (!contenedor) return;
+
   function cargarCategorias() {
-    if (!selectCategoria || typeof productos === "undefined") return;
-
-    const categoriasUnicas = [...new Set(productos.map(p => p.categoria))];
-    categoriasUnicas.forEach(cat => {
+    if (!selectCategoria) return;
+    const categorias = [...new Set(productos.map(p => p.categoria))];
+    categorias.forEach(cat => {
       const option = document.createElement("option");
       option.value = cat;
       option.textContent = cat;
@@ -18,131 +17,78 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 2. Función para renderizar tarjetas en el catálogo
   function renderizarProductos(lista) {
-    if (!contenedorCatalogo) return;
+    contenedor.innerHTML = "";
 
-    // Limpiar el contenedor antes de dibujar
-    contenedorCatalogo.innerHTML = "";
-
-    // Si el arreglo filtrado está vacío, mostrar mensaje sin coincidencias
     if (lista.length === 0) {
-      contenedorCatalogo.innerHTML = `
-        <div class="col-12">
-          <div class="alert alert-light text-center py-5 border rounded-3 shadow-sm">
-            <span class="fs-1 d-block mb-2">🔍</span>
-            <h3 class="h5 fw-bold text-dark">No se encontraron productos</h3>
-            <p class="text-muted small mb-3">No hay coincidencias que se adapten a tu búsqueda o filtro seleccionado.</p>
-            <button id="btn-reset-alert" class="btn btn-sm btn-outline-success rounded-pill px-3">
-              Restablecer filtros
-            </button>
-          </div>
-        </div>
-      `;
-
-      document.querySelector("#btn-reset-alert")?.addEventListener("click", limpiarFiltros);
+      contenedor.innerHTML = `
+        <div class="col-12 text-center py-5">
+          <p class="fs-5 text-muted">No se encontraron productos coincidentes.</p>
+        </div>`;
       return;
     }
 
-    // Dibujar cada producto
-    lista.forEach(producto => {
-      const columna = document.createElement("div");
-      columna.className = "col-md-6 col-xl-3";
-
-      // Distintivo de stock según disponibilidad
-      const badgeStock = producto.stock <= 5
-        ? `<span class="badge text-bg-warning-subtle text-warning-emphasis border border-warning-subtle fw-semibold">¡Últimas ${producto.stock} un.!</span>`
-        : `<span class="badge text-bg-success-subtle text-success border border-success-subtle fw-semibold">Stock: ${producto.stock} un.</span>`;
-
-      columna.innerHTML = `
-        <article class="border rounded-3 overflow-hidden bg-white shadow-sm h-100 d-flex flex-column justify-content-between">
-          <div>
-            <img src="${producto.imagen}" class="img-fluid w-100" alt="${producto.nombre}" style="height: 200px; object-fit: cover;">
-            <div class="p-3">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="eyebrow text-uppercase text-muted small fw-bold">${producto.categoria}</span>
-                ${badgeStock}
-              </div>
-              <h3 class="h5 mt-2">${producto.nombre}</h3>
-              <p class="text-secondary small mb-3">${producto.descripcion}</p>
+    lista.forEach(prod => {
+      const col = document.createElement("div");
+      col.className = "col-md-6 col-lg-4";
+      col.innerHTML = `
+        <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden">
+          <img src="${prod.imagen}" class="card-img-top style-card-img" alt="${prod.nombre}" style="height: 200px; object-fit: cover;">
+          <div class="card-body d-flex flex-column">
+            <span class="badge bg-secondary mb-2 align-self-start">${prod.categoria}</span>
+            <h5 class="card-title fw-bold">${prod.nombre}</h5>
+            <p class="card-text text-secondary small flex-grow-1">${prod.descripcion}</p>
+            <div class="d-flex justify-content-between align-items-center mt-3">
+              <span class="fs-5 fw-bold">$ ${prod.precio.toLocaleString()}</span>
+              <span class="small text-${prod.stock > 0 ? 'success' : 'danger'}">
+                ${prod.stock > 0 ? `Stock: ${prod.stock}` : 'Agotado'}
+              </span>
+            </div>
+            <div class="d-grid gap-2 mt-3">
+              <a href="producto.html?id=${prod.id}" class="btn btn-outline-dark btn-sm rounded-pill">Ver detalle</a>
+              <button class="btn btn-success btn-sm rounded-pill btn-agregar" data-id="${prod.id}" ${prod.stock === 0 ? 'disabled' : ''}>
+                Agregar al carrito
+              </button>
             </div>
           </div>
-          <div class="p-3 pt-0">
-            <div class="d-flex justify-content-between align-items-center gap-2">
-              <strong class="fs-5">$ ${producto.precio}</strong>
-              <div class="d-flex gap-1">
-                <a href="producto.html?id=${producto.id}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-                  Detalle
-                </a>
-                <button type="button" class="btn btn-sm btn-agregar-cart text-white rounded-pill px-3" data-id="${producto.id}" style="background-color: #146c43;">
-                  + Carrito
-                </button>
-              </div>
-            </div>
-          </div>
-        </article>
+        </div>
       `;
-
-      contenedorCatalogo.appendChild(columna);
+      contenedor.appendChild(col);
     });
 
-    // Asignar eventos a los nuevos botones de agregar al carrito
-    asignarEventosAgregar();
-  }
-
-  // 3. Conectar los botones "+ Carrito" con la función global de carrito-state.js
-  function asignarEventosAgregar() {
-    const botonesAgregar = document.querySelectorAll(".btn-agregar-cart");
-    botonesAgregar.forEach(boton => {
-      boton.addEventListener("click", (e) => {
-        const idProducto = e.currentTarget.getAttribute("data-id");
-
-        if (typeof agregarAlCarrito === "function") {
-          const respuesta = agregarAlCarrito(idProducto, 1);
-          alert(respuesta.mensaje);
-        } else {
-          console.error("La función agregarAlCarrito no está disponible. Revisa que js/carrito-state.js esté cargado.");
-        }
+    // Delegación de eventos para botones agregar
+    contenedor.querySelectorAll(".btn-agregar").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const id = e.target.getAttribute("data-id");
+        const res = agregarAlCarrito(id, 1);
+        mostrarToast(res.mensaje, !res.exito);
       });
     });
   }
 
-  // 4. Función principal de filtrado que combina texto y categoría
-  function aplicarFiltros() {
-    if (typeof productos === "undefined") return;
+  function filtrar() {
+    const texto = inputBusqueda ? inputBusqueda.value.toLowerCase().trim() : "";
+    const cat = selectCategoria ? selectCategoria.value : "todas";
 
-    const texto = inputBusqueda ? inputBusqueda.value.trim().toLowerCase() : "";
-    const categoriaSeleccionada = selectCategoria ? selectCategoria.value : "todas";
-
-    const productosFiltrados = productos.filter(p => {
-      const coincideTexto = p.nombre.toLowerCase().includes(texto) ||
-                            p.descripcion.toLowerCase().includes(texto);
-
-      const coincideCategoria = categoriaSeleccionada === "todas" || p.categoria === categoriaSeleccionada;
-
-      return coincideTexto && coincideCategoria;
+    const filtrados = productos.filter(p => {
+      const coincideNombre = p.nombre.toLowerCase().includes(texto) || p.descripcion.toLowerCase().includes(texto);
+      const coincideCat = cat === "todas" || p.categoria === cat;
+      return coincideNombre && coincideCat;
     });
 
-    renderizarProductos(productosFiltrados);
+    renderizarProductos(filtrados);
   }
 
-  // 5. Función para limpiar filtros
-  function limpiarFiltros() {
-    if (inputBusqueda) inputBusqueda.value = "";
-    if (selectCategoria) selectCategoria.value = "todas";
-    if (typeof productos !== "undefined") {
-      renderizarProductos(productos);
-    }
-  }
-
-  // 6. Escuchadores de eventos (Event Listeners)
-  if (inputBusqueda) inputBusqueda.addEventListener("input", aplicarFiltros);
-  if (selectCategoria) selectCategoria.addEventListener("change", aplicarFiltros);
-  if (btnLimpiar) btnLimpiar.addEventListener("click", limpiarFiltros);
-
-  // Inicialización al cargar la vista
   cargarCategorias();
-  if (typeof productos !== "undefined") {
-    renderizarProductos(productos);
+  renderizarProductos(productos);
+
+  if (inputBusqueda) inputBusqueda.addEventListener("input", filtrar);
+  if (selectCategoria) selectCategoria.addEventListener("change", filtrar);
+  if (btnLimpiar) {
+    btnLimpiar.addEventListener("click", () => {
+      if (inputBusqueda) inputBusqueda.value = "";
+      if (selectCategoria) selectCategoria.value = "todas";
+      renderizarProductos(productos);
+    });
   }
 });
