@@ -1,4 +1,4 @@
-# 🛒 Sprint 2 - Actualización del Proyecto
+# 🛒 Sprint 2 - Actualización del Proyecto y mejoras opcionales
 
 ## 🚀 Funcionalidades Incorporadas
 * **Catálogo interactivo:** Filtrado en tiempo real por búsqueda de texto y por categorías.
