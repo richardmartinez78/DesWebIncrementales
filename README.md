@@ -1,3 +1,39 @@
+# 🛒 Sprint 2 - Actualización del Proyecto
+
+## 🚀 Funcionalidades Incorporadas
+* **Catálogo interactivo:** Filtrado en tiempo real por búsqueda de texto y por categorías.
+* **Página de detalle de producto:** Carga dinámica mediante parámetros URL (`?id=...`), selector de cantidad y vista de especificaciones técnicas.
+* **Gestión de carrito:** Adición, modificación de cantidades, eliminación de ítems y vaciado de carrito con validación de stock disponible.
+* **Feedback de usuario:** Notificaciones dinámicas tipo *Toast* y badge contador de productos en la barra de navegación actualizado en tiempo real.
+
+## 📦 Representación de los Productos
+Los productos se representan como una **colección de objetos JavaScript** (`productos.js`). Cada objeto contiene las siguientes propiedades clave:
+* `id`: Identificador único (cadena de texto o número).
+* `nombre`, `descripcion`, `categoria`, `precio` y `stock`.
+* `imagen` / `imagenes`: URLs con las imágenes descriptivas.
+* `especificaciones`: Objeto clave-valor con la ficha técnica.
+* `relacionados`: Arreglo con IDs de productos recomendados.
+
+## 📁 Organización de los Archivos JavaScript
+La lógica se modularizó en archivos JS con responsabilidades claras:
+* `js/productos.js`: Base de datos local e inventario de productos.
+* `js/carrito-state.js`: Estado global del carrito, sincronización con el almacenamiento y helper de notificaciones (*Toasts*).
+* `js/catalogo.js`: Renderizado y lógica de filtrado/búsqueda de la vista de catálogo.
+* `js/producto.js`: Lógica para la vista de detalle de un producto específico.
+* `js/carritoView.js`: Renderizado y gestión de la interfaz de la página del carrito.
+
+## 💾 Información Guardada en LocalStorage
+A través de la API `localStorage` del navegador se almacenan:
+* `dh_carrito_compras`: Arreglo de objetos con los productos agregados (`id`, `nombre`, `precio`, `imagen`, `stock` y `cantidad`).
+* `dh_resenas_productos`: Estructura con valoraciones y comentarios enviados por los usuarios.
+
+## 🔮 Funcionalidades Pendientes (Próximo Sprint)
+* **Autenticación de usuarios:** Registro, inicio de sesión y gestión de perfiles de cliente.
+* **Integración de Pasarela de Pagos:** Proceso completo de checkout con simulación o integración real de pago.
+* **Persistencia en Backend/API:** Conexión con un servidor para persistir pedidos, productos y usuarios en base de datos.
+* **Historial de Pedidos:** Sección donde el usuario autenticado pueda consultar sus compras anteriores.
+
+
 # Nexo Store — Proyecto Base
 
 Proyecto base entregado a los estudiantes para el desarrollo del curso.
