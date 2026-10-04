@@ -13,60 +13,60 @@
 
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark sticky-top shadow-sm">
-    <div class="container">
-        <!-- Marca / Isotipo -->
-        <a class="navbar-brand fw-bold" href="index.html">
-            <span class="brand-mark">DH</span> Domótica Hogar
-        </a>
+        <div class="container">
+            <!-- Marca / Isotipo -->
+            <a class="navbar-brand fw-bold" href="index.html">
+                <span class="brand-mark">DH</span> Domótica Hogar
+            </a>
 
-        <!-- Botón Hamburguesa para Mobile -->
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+            <!-- Botón Hamburguesa para Mobile -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-        <!-- Enlaces de Navegación -->
-        <div class="collapse navbar-collapse" id="mainNav">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item">
-                    <a class="nav-link" data-page="inicio" href="index.html">Inicio</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" data-page="catalogo" href="catalogo.html">Catálogo</a>
-                </li>
-                <li class="nav-item">
-                    <!-- Enlace activo para esta página -->
-                    <a class="nav-link active" aria-current="page" data-page="producto" href="producto.html">Producto</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" data-page="carrito" href="carrito.html">Carrito</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" data-page="perfil" href="perfil.html">Mi perfil</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" data-page="admin" href="admin.html">Administración</a>
-                </li>
-            </ul>
+            <!-- Enlaces de Navegación -->
+            <div class="collapse navbar-collapse" id="mainNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" data-page="inicio" href="index.html">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-page="catalogo" href="catalogo.html">Catálogo</a>
+                    </li>
+                    <li class="nav-item">
+                        <!-- Enlace activo para esta página -->
+                        <a class="nav-link active" aria-current="page" data-page="producto" href="producto.html">Producto</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-page="carrito" href="carrito.html">Carrito</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-page="perfil" href="perfil.html">Mi perfil</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-page="admin" href="admin.html">Administración</a>
+                    </li>
+                </ul>
 
-            <!-- Sección Derecha: Indicador de Carrito y Botón Ingresar -->
-            <div class="d-flex align-items-center gap-3 mt-3 mt-lg-0">
-                <!-- Icono de Carrito con Contador Dinámico -->
-                <a href="carrito.html" class="btn text-white position-relative rounded-circle p-2 d-inline-flex align-items-center justify-content-center shadow-sm" title="Ver carrito de compras" style="width: 42px; height: 42px; background-color: #146c43; border-color: #146c43;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-cart3" viewBox="0 0 16 16">
-                        <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 4H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 13H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5M3.102 4l1.313 7h8.17l1.313-7zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4m-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2m7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/>
-                    </svg>
-                    <span id="cant-carrito" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                        0
-                        <span class="visually-hidden">productos en el carrito</span>
-                    </span>
-                </a>
+                <!-- Sección Derecha: Indicador de Carrito y Botón Ingresar -->
+                <div class="d-flex align-items-center gap-3 mt-3 mt-lg-0">
+                    <!-- Icono de Carrito con Contador Dinámico -->
+                    <a href="carrito.html" class="btn text-white position-relative rounded-circle p-2 d-inline-flex align-items-center justify-content-center shadow-sm" title="Ver carrito de compras" style="width: 42px; height: 42px; background-color: #146c43; border-color: #146c43;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-cart3" viewBox="0 0 16 16">
+                            <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 4H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 13H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5M3.102 4l1.313 7h8.17l1.313-7zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4m-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2m7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/>
+                        </svg>
+                        <span id="cant-carrito" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                            0
+                            <span class="visually-hidden">productos en el carrito</span>
+                        </span>
+                    </a>
 
-                <!-- Botón de Acceso -->
-                <a href="perfil.html" class="btn btn-outline-light rounded-pill btn-sm px-3">Ingresar</a>
+                    <!-- Botón de Acceso -->
+                    <a href="perfil.html" class="btn btn-outline-light rounded-pill btn-sm px-3">Ingresar</a>
+                </div>
             </div>
         </div>
-    </div>
-</nav>
+    </nav>
 
     <!-- Contenedor dinámico del producto -->
     <main class="flex-grow-1">
@@ -75,19 +75,31 @@
         </section>
     </main>
 
-    <!-- Footer -->
+       <!-- Footer -->
     <footer class="footer py-4 mt-auto">
         <div class="container d-flex justify-content-between flex-wrap gap-2">
-            <span>© 2026 Domótica Hogar · Sprint 2</span>
+            <span>© 2026 Domótica Hogar · Sprint 3</span>
             <span>Richard Martínez</span> <span>Uso de imágenes solo con fines educativos. Derechos reservados a sus titulares.</span>
         </div>
     </footer>
 
-    <!-- Scripts (Asegura este orden exacto) -->
+    <!-- Scripts JavaScript vinculados externamente -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="js/productos.js"></script>
+    <script src="js/base.js"></script>
     <script src="js/carrito-state.js"></script>
-    <script src="js/producto.js"></script>
+
+    <!-- Scripts tipo Módulo -->
+    <script type="module" src="js/productos.js"></script>
+    <script type="module" src="js/migrar-productos.js"></script>
+    <script type="module" src="js/producto.js"></script>
+    <!-- Carga del modulo de estado del carrito -->
+<script type="module" src="js/carrito-state.js"></script>
+<script type="module">
+    import { actualizarBadgeCarrito } from './js/carrito-state.js';
+    document.addEventListener('DOMContentLoaded', () => {
+        actualizarBadgeCarrito();
+    });
+</script>
 </body>
 
 </html>

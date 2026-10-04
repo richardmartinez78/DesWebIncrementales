@@ -1,1 +1,14 @@
-document.addEventListener("DOMContentLoaded",()=>{const p=document.body.dataset.page;document.querySelectorAll("[data-page]").forEach(a=>a.classList.toggle("active",a.dataset.page===p));const t=document.querySelector("#appToast"),m=document.querySelector("#toastMessage");const show=x=>{m.textContent=x;bootstrap.Toast.getOrCreateInstance(t).show()};document.querySelector("#btnLoginPlaceholder")?.addEventListener("click",()=>show("El inicio de sesión será desarrollado en el Sprint 3."));document.querySelector("#btnProjectInfo")?.addEventListener("click",()=>bootstrap.Modal.getOrCreateInstance(document.querySelector("#projectInfoModal")).show())});
+// Actualización global del contador de carrito al cargar la página
+document.addEventListener('DOMContentLoaded', () => {
+    actualizarContadorCarritoGlobal();
+});
+
+export function actualizarContadorCarritoGlobal() {
+    const badge = document.getElementById('cant-carrito');
+    if (!badge) return;
+
+    const carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+    const totalArticulos = carrito.reduce((suma, item) => suma + (parseInt(item.cantidad) || 0), 0);
+
+    badge.textContent = totalArticulos;
+}

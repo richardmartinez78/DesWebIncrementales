@@ -1,9 +1,69 @@
+/* ==========================================================================
+   1. VARIABLES Y ESTILOS BASE (CORREGIDO)
+   ========================================================================== */
 :root {
   --primary: #266d35;
   --secondary: #172033;
   --surface: #f5f7fb;
   --accent: #ffc107;
+  --ink: #172033;
 }
+
+* {
+  box-sizing: border-box;
+}
+
+/* Permitir que el HTML se expanda libremente sin limitar el scroll */
+html {
+  height: auto;
+  min-height: 100%;
+}
+
+body {
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  color: var(--ink);
+  background-color: var(--surface);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+}
+
+/* El main se expande dinómicamente sin generar franjas blancas al final */
+main, .flex-grow-1 {
+  flex: 1 0 auto;
+}
+
+/* ==========================================================================
+   2. NAVEGACIÓN Y CABECERA
+   ========================================================================== */
+.navbar {
+  background: linear-gradient(90deg, #143d16, #1ac737);
+}
+
+.navbar .nav-link {
+  color: #e9f0efc7;
+}
+
+.navbar .nav-link.active,
+.navbar .nav-link:hover {
+  color: #fff;
+}
+
+.brand-mark {
+  background-color: #146c43;
+  color: #ffffff;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.375rem;
+  font-weight: 700;
+  display: inline-block;
+  margin-right: 0.25rem;
+}
+
+/* ==========================================================================
+   3. BOTONES Y ACCESIBILIDAD
+   ========================================================================== */
 .btn-primary {
   background-color: var(--primary);
   border-color: var(--primary);
@@ -20,15 +80,20 @@
   border-color: var(--secondary);
 }
 
-* {
-  box-sizing: border-box;
+.btn-verde-domotica {
+  background-color: #146c43;
+  color: #ffffff;
+  border: 1px solid #146c43;
+  transition: all 0.25s ease-in-out;
 }
 
-body {
-  font-family: Inter, system-ui, sans-serif;
-  color: var(--ink);
-  background: var(--surface);
+.btn-verde-domotica:hover {
+  background-color: #0f5132;
+  border-color: #0f5132;
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(20, 108, 67, 0.25);
 }
+
 a:focus-visible,
 button:focus-visible,
 .btn:focus-visible,
@@ -37,29 +102,9 @@ button:focus-visible,
   box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.35) !important;
 }
 
-.navbar {
-  background: linear-gradient(90deg, #143d16, #1ac737);
-}
-
-.navbar .nav-link {
-  color: #e9f0efc7;
-}
-
-.navbar .nav-link.active,
-.navbar .nav-link:hover {
-  color: #fff;
-}
-
-.brand-mark {
-    background-color: #146c43;
-    color: #ffffff;
-    padding: 0.2rem 0.5rem;
-    border-radius: 0.375rem;
-    font-weight: 700;
-    display: inline-block;
-    margin-right: 0.25rem;
-}
-
+/* ==========================================================================
+   4. HERO Y SECCIÓN DE PRESENTACIÓN
+   ========================================================================== */
 .hero {
   background: radial-gradient(circle at 15% 20%, #d7e2d8 0, #fff 48%, #eef3ff 100%);
 }
@@ -92,17 +137,9 @@ button:focus-visible,
   background: #e0efdc;
 }
 
-.dot:first-child {
-  background: #6bb0ff;
-}
-
-.dot:nth-child(2) {
-  background: #3bc1ff;
-}
-
-.dot:nth-child(3) {
-  background: #51cf66;
-}
+.dot:first-child { background: #6bb0ff; }
+.dot:nth-child(2) { background: #3bc1ff; }
+.dot:nth-child(3) { background: #51cf66; }
 
 .floating-card {
   position: absolute;
@@ -116,6 +153,9 @@ button:focus-visible,
   flex-direction: column;
 }
 
+/* ==========================================================================
+   5. COMPONENTES Y TARJETAS DE PRODUCTO
+   ========================================================================== */
 .metric {
   background: #fff;
   border: 1px solid #e7eaf0;
@@ -134,7 +174,7 @@ button:focus-visible,
 .section-heading {
   display: flex;
   justify-content: space-between;
-  align-items: end;
+  align-items: flex-end;
 }
 
 .eyebrow {
@@ -173,14 +213,6 @@ button:focus-visible,
   box-shadow: 0 10px 28px #17203314;
 }
 
-.placeholder-image {
-  height: 210px;
-  background: repeating-linear-gradient(45deg, #eef1f7 0, #eef1f7 12px, #e5e9f1 12px, #e5e9f1 24px);
-  display: grid;
-  place-items: center;
-  color: #eff0f1;
-  font-weight: 700;
-}
 .card {
   border: none;
   border-radius: 16px;
@@ -199,356 +231,59 @@ button:focus-visible,
   object-fit: cover;
 }
 
-.benefits {
-  background: #0f2210;
-  color: #fff;
-}
-
-.benefit-card p {
-  color: #e7eeea;
-}
-
-.footer {
-  background: #10280f;
-  color: #aeb7c8;
-}
-
-.sprint-summary {
-  background: #f5f7fb;
-  border: 1px solid #e3e7ef;
-  border-radius: 12px;
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-}
-
-.locked-module {
-  max-width: 860px;
-  margin: 40px auto;
-  text-align: center;
-  background: #fff;
-  border-radius: 24px;
-  padding: 48px;
-  box-shadow: 0 18px 45px #17203317;
-}
-
-.locked-icon {
-  font-size: 4rem;
-}
-
-.locked-card {
-  margin-top: 28px;
-  text-align: left;
-  background: #f7f8fb;
-  border: 1px dashed #b7c0d0;
-  border-radius: 16px;
-  padding: 24px;
-}
-
-@media (max-width: 767px) {
-  .floating-card {
-    position: static;
-    margin-top: 10px;
-  }
-@media (max-width: 575px) {
-  .carousel-item img {
-    height: 240px;
-  }
-
-  .hero-card img {
-    height: 220px;
-  }
-}
-
-  .hero-card img {
-    height: 320px;
-  }
-
-  .locked-module {
-    padding: 30px 20px;
-  }
-
-  .section-heading {
-    align-items: start;
-    flex-direction: column;
-  }
-}
-
 .carousel-item img {
   height: 400px;
   object-fit: cover;
 }
 
-/* Small utility helpers */
-.text-secondary { color: #243325; }
-.badge { font-weight: 700; }
-
-/* Botón verde personalizado Domótica */
-.btn-verde-domotica {
-    background-color: #146c43;
-    color: #ffffff;
-    border: 1px solid #146c43;
-    transition: all 0.25s ease-in-out;
-}
-
-.btn-verde-domotica:hover {
-    background-color: #0f5132;
-    border-color: #0f5132;
-    color: #ffffff;
-    box-shadow: 0 4px 10px rgba(20, 108, 67, 0.25);
-:root {
-  --primary: #266d35;
-  --secondary: #172033;
-  --surface: #f5f7fb;
-  --accent: #ffc107;
-}
-.btn-primary {
-  background-color: var(--primary);
-  border-color: var(--primary);
-}
-
-.btn-primary:hover,
-.btn-primary:focus {
-  background-color: #1c5227;
-  border-color: #0d2913;
-}
-
-.btn-secondary {
-  background-color: var(--secondary);
-  border-color: var(--secondary);
-}
-
-* {
-  box-sizing: border-box;
-}
-
-body {
-  font-family: Inter, system-ui, sans-serif;
-  color: var(--ink);
-  background: var(--surface);
-}
-a:focus-visible,
-button:focus-visible,
-.btn:focus-visible,
-.form-control:focus {
-  outline: 3px solid var(--accent) !important;
-  box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.35) !important;
-}
-
-.navbar {
-  background: linear-gradient(90deg, #143d16, #1ac737);
-}
-
-.navbar .nav-link {
-  color: #e9f0efc7;
-}
-
-.navbar .nav-link.active,
-.navbar .nav-link:hover {
-  color: #fff;
-}
-
-.brand-mark {
-  display: #d35400;
-  place-items: #146c43;
-  width: 32px;
-  height: 32px;
-  background: var(--accent);
-  color: #9b910e;
-  border-radius: 10px;
-  margin-right: 0.35rem;
-}
-
-.hero {
-  background: radial-gradient(circle at 15% 20%, #d7e2d8 0, #fff 48%, #eef3ff 100%);
-}
-
-.hero-card {
-  position: relative;
-  background: #fff;
-  border-radius: 24px;
-  padding: 12px;
-  box-shadow: 0 20px 50px rgba(26, 78, 37, 0.15);
-}
-
-.hero-card img {
-  height: 420px;
+/* ==========================================================================
+   6. SECCIÓN DE BENEFICIOS (VERDE OSCURO)
+   ========================================================================== */
+.benefits {
+  background: #0f2210;
+  color: #ffffff;
   width: 100%;
-  object-fit: cover;
-  border-radius: 16px; 
-}
-
-.hero-card-header {
-  display: flex;
-  gap: 7px;
-  padding: 5px 4px 12px;
-}
-
-.dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: #e0efdc;
-}
-
-.dot:first-child {
-  background: #6bb0ff;
-}
-
-.dot:nth-child(2) {
-  background: #3bc1ff;
-}
-
-.dot:nth-child(3) {
-  background: #51cf66;
-}
-
-.floating-card {
-  position: absolute;
-  left: 20px; 
-  bottom: 30px;
-  background: #fff;
-  padding: 18px 22px;
-  border-radius: 16px;
-  box-shadow: 0 18px 40px #1720332e;
-  display: flex;
-  flex-direction: column;
-}
-
-.metric {
-  background: #fff;
-  border: 1px solid #e7eaf0;
-  border-radius: 14px;
-  padding: 14px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-}
-
-.metric span {
-  font-size: 0.75rem;
-  color: #0f220e;
-}
-
-.section-heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: end;
-}
-
-.eyebrow {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: var(--primary);
-  font-weight: 800;
-}
-
-.student-task {
-  display: flex;
-  gap: 16px;
-  background: #fff;
-  border-left: 5px solid var(--primary);
-  border-radius: 14px;
-  padding: 20px;
-}
-
-.student-task-number {
-  display: grid;
-  place-items: center;
-  flex: 0 0 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--primary);
-  color: #fff;
-  font-weight: 800;
-}
-
-.placeholder-product {
-  height: 100%;
-  background: #fff;
-  border-radius: 18px;
-  overflow: hidden;
-  box-shadow: 0 10px 28px #17203314;
-}
-
-.placeholder-image {
-  height: 210px;
-  background: repeating-linear-gradient(45deg, #eef1f7 0, #eef1f7 12px, #e5e9f1 12px, #e5e9f1 24px);
-  display: grid;
-  place-items: center;
-  color: #eff0f1;
-  font-weight: 700;
-}
-.card {
-  border: none;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 10px 28px rgba(23, 32, 51, 0.08);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 16px 35px rgba(23, 32, 51, 0.12);
-}
-
-.card-img-top {
-  height: 220px;
-  object-fit: cover;
-}
-
-.benefits {
-  background: #0f2210;
-  color: #fff;
 }
 
 .benefit-card p {
   color: #e7eeea;
 }
 
-.footer {
-  background: #10280f;
-  color: #aeb7c8;
+/* ==========================================================================
+   7. PIE DE PÁGINA (FOOTER CON ESPACIO EXTRA AL FINAL)
+   ========================================================================== */
+footer, .footer {
+  background-color: #0a1b0b !important;
+  color: #aeb7c8 !important;
+  width: 100%;
+  margin-top: auto;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 100;
+  padding-top: 2.5rem !important;
+  padding-bottom: 4.5rem !important; /* <--- Colchón amplio para que el texto nunca quede cortado abajo */
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.sprint-summary {
-  background: #f5f7fb;
-  border: 1px solid #e3e7ef;
-  border-radius: 12px;
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-}
-
-.locked-module {
-  max-width: 860px;
-  margin: 40px auto;
-  text-align: center;
-  background: #fff;
-  border-radius: 24px;
-  padding: 48px;
-  box-shadow: 0 18px 45px #17203317;
-}
-
-.locked-icon {
-  font-size: 4rem;
-}
-
-.locked-card {
-  margin-top: 28px;
-  text-align: left;
-  background: #f7f8fb;
-  border: 1px dashed #b7c0d0;
-  border-radius: 16px;
-  padding: 24px;
-}
-
+/* ==========================================================================
+   8. ADAPTACIONES RESPONSIVAS
+   ========================================================================== */
 @media (max-width: 767px) {
   .floating-card {
     position: static;
     margin-top: 10px;
   }
+
+  .hero-card img {
+    height: 320px;
+  }
+
+  .section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
 @media (max-width: 575px) {
   .carousel-item img {
     height: 240px;
@@ -557,42 +292,4 @@ button:focus-visible,
   .hero-card img {
     height: 220px;
   }
-}
-
-  .hero-card img {
-    height: 320px;
-  }
-
-  .locked-module {
-    padding: 30px 20px;
-  }
-
-  .section-heading {
-    align-items: start;
-    flex-direction: column;
-  }
-}
-
-.carousel-item img {
-  height: 400px;
-  object-fit: cover;
-}
-
-/* Small utility helpers */
-.text-secondary { color: #243325; }
-.badge { font-weight: 700; }
-
-/* Botón verde personalizado Domótica */
-.btn-verde-domotica {
-    background-color: #146c43;
-    color: #ffffff;
-    border: 1px solid #146c43;
-    transition: all 0.25s ease-in-out;
-}
-
-.btn-verde-domotica:hover {
-    background-color: #0f5132;
-    border-color: #0f5132;
-    color: #ffffff;
-    box-shadow: 0 4px 10px rgba(20, 108, 67, 0.25);
 }

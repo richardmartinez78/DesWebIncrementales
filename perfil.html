@@ -117,7 +117,7 @@
     <!-- Footer -->
     <footer class="footer py-4 mt-auto">
         <div class="container d-flex justify-content-between flex-wrap gap-2">
-            <span>© 2026 Domótica Hogar · Sprint 2</span>
+            <span>© 2026 Domótica Hogar · Sprint 3</span>
             <span>Richard Martínez</span> <span>Uso de imágenes solo con fines educativos. Derechos reservados a sus titulares.</span>
         </div>
     </footer>
@@ -224,6 +224,14 @@
     <script src="js/carrito-state.js"></script>
     <script src="js/main.js"></script>
     <script src="js/perfil.js"></script>
+   <!-- Script para sincronizar el contador del carrito global -->
+<script type="module" src="js/carrito-state.js"></script>
+<script type="module">
+    import { actualizarBadgeCarrito } from './js/carrito-state.js';
+    document.addEventListener('DOMContentLoaded', () => {
+        actualizarBadgeCarrito();
+    });
+</script>
 </body>
 
 </html>trap.bundle.min.js"></script><script src="js/base.js"></script></body></html>
