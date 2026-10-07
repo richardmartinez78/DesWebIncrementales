@@ -1,39 +1,67 @@
-// Clave única utilizada en todo el proyecto
-const STORAGE_KEY = 'carrito';
+/**
+ * js/carrito-state.js - Estado y lógica del carrito
+ * Domótica Hogar
+ */
 
-// Lee y parsea los datos desde localStorage de forma segura
+/**
+ * Lee los elementos guardados en localStorage
+ */
 export function obtenerCarrito() {
     try {
-        const data = localStorage.getItem(STORAGE_KEY);
-        const carrito = data ? JSON.parse(data) : [];
-        return Array.isArray(carrito) ? carrito : [];
+        return JSON.parse(localStorage.getItem('carrito')) || JSON.parse(localStorage.getItem('cart')) || [];
     } catch (e) {
-        console.error('Error al leer el carrito de localStorage:', e);
+        console.error("Error al leer localStorage:", e);
         return [];
     }
 }
 
-// Guarda en localStorage y actualiza la insignia en el Navbar
+/**
+ * Guarda el array de productos en localStorage
+ */
 export function guardarCarrito(carrito) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(carrito));
-    actualizarBadgeCarrito();
+    localStorage.setItem('carrito', JSON.stringify(carrito));
 }
 
-// Calcula y muestra la suma total de unidades en el badge
-export function actualizarBadgeCarrito() {
+/**
+ * Actualiza la cantidad de un ítem por su índice
+ */
+export function actualizarCantidad(index, nuevaCantidad) {
     const carrito = obtenerCarrito();
-    const totalCantidad = carrito.reduce((acc, item) => {
-        const cant = parseInt(item.cantidad, 10);
-        return acc + (isNaN(cant) ? 0 : cant);
-    }, 0);
-    
-    const badge = document.getElementById('cant-carrito');
-    if (badge) {
-        badge.textContent = totalCantidad;
+    if (carrito[index]) {
+        carrito[index].cantidad = Math.max(1, parseInt(nuevaCantidad) || 1);
+        guardarCarrito(carrito);
     }
+    return carrito;
 }
 
-// Escucha eventos para actualizar automáticamente cuando se cargue el DOM
-document.addEventListener('DOMContentLoaded', () => {
-    actualizarBadgeCarrito();
-});
+/**
+ * Elimina un producto por su índice y retorna el producto eliminado
+ */
+export function eliminarDelCarrito(index) {
+    const carrito = obtenerCarrito();
+    let eliminado = null;
+    if (index >= 0 && index < carrito.length) {
+        eliminado = carrito.splice(index, 1)[0];
+        guardarCarrito(carrito);
+    }
+    return { carrito, eliminado };
+}
+
+/**
+ * Vacía completamente el carrito
+ */
+export function vaciarCarrito() {
+    localStorage.removeItem('carrito');
+    localStorage.removeItem('cart');
+}
+
+/**
+ * Calcula la suma total del carrito
+ */
+export function calcularTotal(carrito) {
+    return carrito.reduce((acc, prod) => {
+        const cantidad = parseInt(prod.cantidad) || 1;
+        const precio = parseFloat(prod.precio) || 0;
+        return acc + (precio * cantidad);
+    }, 0);
+}

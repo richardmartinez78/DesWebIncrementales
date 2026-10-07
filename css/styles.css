@@ -293,3 +293,7 @@ footer, .footer {
     height: 220px;
   }
 }
+/* Notificaciones Toast siempre visibles en capa superior */
+.toast-container {
+  z-index: 9999 !important;
+}

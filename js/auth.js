@@ -1,125 +1,215 @@
-import { db, auth } from "./firebase/config.js";
-import { 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  signOut, 
-  onAuthStateChanged 
-} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+/**
+ * js/auth.js - Gestión estricta de autenticación (Login y Registro)
+ * Domótica Hogar
+ */
 
-import { 
-  doc, 
-  setDoc, 
-  getDoc 
-} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import { mostrarToast, actualizarBotonAuth } from './base.js';
 
-// --- DICCIONARIO DE ERRORES COMPRENSIBLES ---
-function obtenerMensajeError(codigo) {
-  switch (codigo) {
-    case "auth/email-already-in-use":
-      return "El correo electrónico ya está registrado.";
-    case "auth/invalid-email":
-      return "El correo electrónico no es válido.";
-    case "auth/weak-password":
-      return "La contraseña debe tener al menos 6 caracteres.";
-    case "auth/user-not-found":
-    case "auth/wrong-password":
-    case "auth/invalid-credential":
-      return "Correo o contraseña incorrectos.";
-    default:
-      return "Ocurrió un error inesperado. Inténtalo de nuevo.";
-  }
+let auth = null;
+let createUserWithEmailAndPassword = null;
+let signInWithEmailAndPassword = null;
+let updateProfile = null;
+
+try {
+    const firebaseModule = await import('./firebase/config.js');
+    auth = firebaseModule.auth;
+
+    const firebaseAuthModule = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
+    createUserWithEmailAndPassword = firebaseAuthModule.createUserWithEmailAndPassword;
+    signInWithEmailAndPassword = firebaseAuthModule.signInWithEmailAndPassword;
+    updateProfile = firebaseAuthModule.updateProfile;
+} catch (e) {
+    console.warn("Firebase no está disponible. Se aplicará validación local estricta.");
 }
 
-// --- REGISTRO DE USUARIOS ---
-export async function registrarUsuario(nombre, apellido, email, password) {
-  // Validación de campos
-  if (!nombre.trim() || !apellido.trim() || !email.trim() || !password.trim()) {
-    throw new Error("Todos los campos son obligatorios.");
-  }
-  if (password.length < 6) {
-    throw new Error("La contraseña debe tener al menos 6 caracteres.");
-  }
+/**
+ * Obtiene la lista de usuarios registrados en el navegador
+ */
+function obtenerUsuariosRegistrados() {
+    return JSON.parse(localStorage.getItem('usuarios_registrados')) || [];
+}
 
-  try {
-    // 1. Crear usuario en Auth
-    const credencial = await createUserWithEmailAndPassword(auth, email, password);
-    const user = credencial.user;
+/**
+ * Guarda un usuario en la lista local de registros
+ */
+function guardarUsuarioLocal(nuevoUsuario) {
+    const usuarios = obtenerUsuariosRegistrados();
+    usuarios.push(nuevoUsuario);
+    localStorage.setItem('usuarios_registrados', JSON.stringify(usuarios));
+}
 
-    // 2. Crear documento en Firestore usando el UID
-    await setDoc(doc(db, "usuarios", user.uid), {
-      nombre: nombre.trim(),
-      apellido: apellido.trim(),
-      email: email.trim(),
-      rol: "estudiante",
-      fechaRegistro: new Date()
+// -------------------------------------------------------------
+// 1. REGISTRO DE USUARIOS
+// -------------------------------------------------------------
+const formRegistro = document.getElementById('form-registro');
+
+if (formRegistro) {
+    formRegistro.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const nombre = document.getElementById('registro-nombre')?.value.trim();
+        const email = document.getElementById('registro-email')?.value.trim().toLowerCase();
+        const password = document.getElementById('registro-password')?.value;
+        const confirmPassword = document.getElementById('registro-confirm')?.value;
+
+        // Validar coincidencia de contraseñas
+        if (password !== confirmPassword) {
+            mostrarToast('Las contraseñas no coinciden.', true);
+            return;
+        }
+
+        const btnSubmit = formRegistro.querySelector('button[type="submit"]');
+        if (btnSubmit) {
+            btnSubmit.disabled = true;
+            btnSubmit.textContent = 'Creando cuenta...';
+        }
+
+        try {
+            let usuarioSesion = null;
+
+            if (auth && createUserWithEmailAndPassword) {
+                // Registro real en Firebase Auth
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                if (nombre && userCredential.user && updateProfile) {
+                    await updateProfile(userCredential.user, { displayName: nombre });
+                }
+                usuarioSesion = {
+                    uid: userCredential.user.uid,
+                    email: userCredential.user.email,
+                    nombre: nombre || email.split('@')[0]
+                };
+            } else {
+                // Validación local: Verificar si el correo ya existe
+                const usuariosLocales = obtenerUsuariosRegistrados();
+                if (usuariosLocales.some(u => u.email === email)) {
+                    mostrarToast('El correo electrónico ya se encuentra registrado.', true);
+                    if (btnSubmit) {
+                        btnSubmit.disabled = false;
+                        btnSubmit.textContent = 'Crear Cuenta';
+                    }
+                    return;
+                }
+
+                usuarioSesion = {
+                    uid: 'local-' + Date.now(),
+                    email: email,
+                    nombre: nombre || email.split('@')[0]
+                };
+            }
+
+            // Guardar usuario en el registro local
+            guardarUsuarioLocal({ nombre: nombre || email.split('@')[0], email, password });
+
+            // Activar sesión actual
+            localStorage.setItem('usuario', JSON.stringify(usuarioSesion));
+            mostrarToast('¡Cuenta registrada e iniciada con éxito!');
+            actualizarBotonAuth();
+
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1000);
+
+        } catch (error) {
+            console.error("Error durante el registro:", error);
+            let mensaje = 'Ocurrió un error al registrar la cuenta.';
+
+            if (error.code === 'auth/email-already-in-use') {
+                mensaje = 'El correo electrónico ya se encuentra registrado.';
+            } else if (error.code === 'auth/weak-password') {
+                mensaje = 'La contraseña debe tener al menos 6 caracteres.';
+            } else if (error.code === 'auth/invalid-email') {
+                mensaje = 'El correo electrónico no es válido.';
+            }
+
+            mostrarToast(mensaje, true);
+
+            if (btnSubmit) {
+                btnSubmit.disabled = false;
+                btnSubmit.textContent = 'Crear Cuenta';
+            }
+        }
     });
-
-    return "Usuario registrado e iniciado sesión exitosamente.";
-  } catch (error) {
-    throw new Error(obtenerMensajeError(error.code) || error.message);
-  }
 }
 
-// --- INICIO DE SESIÓN ---
-export async function iniciarSesion(email, password) {
-  if (!email.trim() || !password.trim()) {
-    throw new Error("Por favor completa el correo y la contraseña.");
-  }
+// -------------------------------------------------------------
+// 2. INICIO DE SESIÓN (LOGIN ESTRICTO)
+// -------------------------------------------------------------
+const formLogin = document.getElementById('form-login');
 
-  try {
-    await signInWithEmailAndPassword(auth, email, password);
-    return "Sesión iniciada correctamente.";
-  } catch (error) {
-    throw new Error(obtenerMensajeError(error.code));
-  }
-}
+if (formLogin) {
+    formLogin.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-// --- CIERRE DE SESIÓN ---
-export async function cerrarSesion() {
-  try {
-    await signOut(auth);
-    window.location.href = "login.html";
-  } catch (error) {
-    console.error("Error al cerrar sesión:", error);
-  }
-}
+        const email = document.getElementById('login-email')?.value.trim().toLowerCase();
+        const password = document.getElementById('login-password')?.value;
 
-// --- ESCUCHADOR DE ESTADO (Mantiene sesión y actualiza Navbar) ---
-export function observarEstadoUsuario(callbackProtegerRuta) {
-  onAuthStateChanged(auth, async (user) => {
-    actualizarNavbar(user);
-    if (callbackProtegerRuta) {
-      callbackProtegerRuta(user);
-    }
-  });
-}
+        const btnSubmit = formLogin.querySelector('button[type="submit"]');
+        if (btnSubmit) {
+            btnSubmit.disabled = true;
+            btnSubmit.textContent = 'Ingresando...';
+        }
 
-// --- ACTUALIZAR NAVBAR SEGÚN EL ESTADO ---
-function actualizarNavbar(user) {
-  const navAuth = document.querySelector("#navAuthOptions");
-  if (!navAuth) return;
+        try {
+            let usuarioSesion = null;
 
-  if (user) {
-    navAuth.innerHTML = `
-      <li class="nav-item"><a class="nav-link" href="perfil.html">Mi Perfil</a></li>
-      <li class="nav-item"><button class="btn btn-outline-light btn-sm ms-2" id="btnCerrarSesion">Cerrar Sesión</button></li>
-    `;
-    document.querySelector("#btnCerrarSesion")?.addEventListener("click", cerrarSesion);
-  } else {
-    navAuth.innerHTML = `
-      <li class="nav-item"><a class="nav-link" href="login.html">Iniciar Sesión</a></li>
-      <li class="nav-item"><a class="nav-link" href="registro.html">Registrarse</a></li>
-    `;
-  }
-}
+            if (auth && signInWithEmailAndPassword) {
+                // Intento de autenticación en Firebase
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                usuarioSesion = {
+                    uid: userCredential.user.uid,
+                    email: userCredential.user.email,
+                    nombre: userCredential.user.displayName || email.split('@')[0]
+                };
+            } else {
+                // Validación local: Verificar que el usuario exista y la contraseña coincida
+                const usuariosLocales = obtenerUsuariosRegistrados();
+                const usuarioEncontrado = usuariosLocales.find(u => u.email === email && u.password === password);
 
-// --- OBTENER DATOS DEL USUARIO (Para perfil.html) ---
-export async function obtenerDatosPerfil(uid) {
-  const docRef = doc(db, "usuarios", uid);
-  const docSnap = await getDoc(docRef);
-  if (docSnap.exists()) {
-    return docSnap.data();
-  } else {
-    throw new Error("No se encontraron los datos del perfil.");
-  }
+                if (!usuarioEncontrado) {
+                    mostrarToast('Usuario no registrado o contraseña incorrecta.', true);
+                    if (btnSubmit) {
+                        btnSubmit.disabled = false;
+                        btnSubmit.textContent = 'Ingresar';
+                    }
+                    return;
+                }
+
+                usuarioSesion = {
+                    uid: 'local-' + Date.now(),
+                    email: usuarioEncontrado.email,
+                    nombre: usuarioEncontrado.nombre
+                };
+            }
+
+            // Activar sesión
+            localStorage.setItem('usuario', JSON.stringify(usuarioSesion));
+            mostrarToast('¡Inicio de sesión exitoso!');
+            actualizarBotonAuth();
+
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1000);
+
+        } catch (error) {
+            console.error("Error durante el login:", error);
+            let mensaje = 'Correo electrónico o contraseña incorrectos.';
+
+            if (
+                error.code === 'auth/user-not-found' ||
+                error.code === 'auth/wrong-password' ||
+                error.code === 'auth/invalid-credential'
+            ) {
+                mensaje = 'Usuario no registrado o contraseña incorrecta.';
+            } else if (error.code === 'auth/invalid-email') {
+                mensaje = 'El correo electrónico no es válido.';
+            }
+
+            mostrarToast(mensaje, true);
+
+            if (btnSubmit) {
+                btnSubmit.disabled = false;
+                btnSubmit.textContent = 'Ingresar';
+            }
+        }
+    });
 }

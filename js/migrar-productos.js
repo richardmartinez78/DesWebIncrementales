@@ -1,4 +1,4 @@
-import { db } from './firebase/config.js';
+import { db } from './firebase-config.js';
 import { collection, doc, setDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const productos = [
@@ -184,6 +184,3 @@ export async function cargarProductosEnFirestore() {
         console.error("Error al migrar productos a Firestore:", error);
     }
 }
-
-// Ejecutar migración al importar
-cargarProductosEnFirestore();

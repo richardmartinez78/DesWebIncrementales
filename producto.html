@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
-    <title>Domótica Hogar | Detalle del Producto</title>
+    <title>Domótica Hogar | Producto</title>
 </head>
 
 <body class="d-flex flex-column min-vh-100" data-page="producto">
@@ -14,17 +14,14 @@
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark sticky-top shadow-sm">
         <div class="container">
-            <!-- Marca / Isotipo -->
             <a class="navbar-brand fw-bold" href="index.html">
                 <span class="brand-mark">DH</span> Domótica Hogar
             </a>
 
-            <!-- Botón Hamburguesa para Mobile -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
-            <!-- Enlaces de Navegación -->
             <div class="collapse navbar-collapse" id="mainNav">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
@@ -34,8 +31,7 @@
                         <a class="nav-link" data-page="catalogo" href="catalogo.html">Catálogo</a>
                     </li>
                     <li class="nav-item">
-                        <!-- Enlace activo para esta página -->
-                        <a class="nav-link active" aria-current="page" data-page="producto" href="producto.html">Producto</a>
+                        <a class="nav-link" data-page="producto" href="producto.html">Producto</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" data-page="carrito" href="carrito.html">Carrito</a>
@@ -48,58 +44,74 @@
                     </li>
                 </ul>
 
-                <!-- Sección Derecha: Indicador de Carrito y Botón Ingresar -->
                 <div class="d-flex align-items-center gap-3 mt-3 mt-lg-0">
-                    <!-- Icono de Carrito con Contador Dinámico -->
-                    <a href="carrito.html" class="btn text-white position-relative rounded-circle p-2 d-inline-flex align-items-center justify-content-center shadow-sm" title="Ver carrito de compras" style="width: 42px; height: 42px; background-color: #146c43; border-color: #146c43;">
+                    <a href="carrito.html" class="btn text-white position-relative rounded-circle p-2 d-inline-flex align-items-center justify-content-center shadow-sm" title="Carrito de compras" style="width: 42px; height: 42px; background-color: #146c43; border-color: #146c43;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-cart3" viewBox="0 0 16 16">
                             <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 4H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 13H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5M3.102 4l1.313 7h8.17l1.313-7zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4m7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4m-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2m7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/>
                         </svg>
-                        <span id="cant-carrito" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                            0
-                            <span class="visually-hidden">productos en el carrito</span>
-                        </span>
+                        <span id="cant-carrito" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
                     </a>
 
-                    <!-- Botón de Acceso -->
-                    <a href="perfil.html" class="btn btn-outline-light rounded-pill btn-sm px-3">Ingresar</a>
+                    <div id="nav-auth-container" class="d-flex align-items-center gap-2">
+                        <a href="perfil.html" class="btn btn-outline-light btn-sm rounded-pill px-3">Ingresar</a>
+                    </div>
                 </div>
             </div>
         </div>
     </nav>
 
-    <!-- Contenedor dinámico del producto -->
-    <main class="flex-grow-1">
-        <section class="container py-4">
-            <div id="contenedor-producto"></div>
-        </section>
+    <!-- Contenido Principal del Producto -->
+    <main class="container py-5 flex-grow-1">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="index.html">Inicio</a></li>
+                <li class="breadcrumb-item"><a href="catalogo.html">Catálogo</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Detalle de Producto</li>
+            </ol>
+        </nav>
+
+        <div id="detalle-producto" class="row g-5">
+            <div class="col-md-6">
+                <img id="img-producto" src="https://bgreat.uy/wp-content/uploads/2024/11/199538-Asistente-de-Voz-Alexa-Echo-Dot-5ta-Gen-Charcole-4-510x510.jpg" class="img-fluid rounded shadow" alt="Producto">
+            </div>
+            <div class="col-md-6">
+                <span id="categoria-producto" class="badge text-bg-success mb-2">Entretenimiento</span>
+                <h1 id="titulo-producto" class="fw-bold">Echo Dot 5ª Generación</h1>
+                <p id="precio-producto" class="fs-3 fw-bold text-success my-3">$ 3.500</p>
+                <p id="descripcion-producto" class="text-secondary lead">El altavoz inteligente más popular con Alexa. Diseño elegante y audio mejorado para ofrecer un sonido potente en cualquier habitación de tu hogar.</p>
+                
+                <div class="d-flex align-items-center gap-3 mt-4">
+                    <input type="number" id="cantidad-producto" class="form-control w-25" value="1" min="1" max="10">
+                    <button id="btn-agregar-carrito" class="btn btn-success btn-lg px-4 rounded-pill">Agregar al Carrito</button>
+                </div>
+            </div>
+        </div>
     </main>
 
-       <!-- Footer -->
+    <!-- Footer -->
     <footer class="footer py-4 mt-auto">
-        <div class="container d-flex justify-content-between flex-wrap gap-2">
+        <div class="container d-flex justify-content-between flex-wrap gap-2 text-center text-md-start">
             <span>© 2026 Domótica Hogar · Sprint 3</span>
-            <span>Richard Martínez</span> <span>Uso de imágenes solo con fines educativos. Derechos reservados a sus titulares.</span>
+            <span>Richard Martínez</span> 
+            <span>Uso de imágenes solo con fines educativos.</span>
         </div>
     </footer>
 
-    <!-- Scripts JavaScript vinculados externamente -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="js/base.js"></script>
-    <script src="js/carrito-state.js"></script>
+    <!-- Toast container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="appToast" class="toast">
+            <div class="toast-header">
+                <strong class="me-auto">Domótica Hogar</strong>
+                <button class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body" id="toastMessage"></div>
+        </div>
+    </div>
 
-    <!-- Scripts tipo Módulo -->
-    <script type="module" src="js/productos.js"></script>
-    <script type="module" src="js/migrar-productos.js"></script>
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="js/base.js"></script>
     <script type="module" src="js/producto.js"></script>
-    <!-- Carga del modulo de estado del carrito -->
-<script type="module" src="js/carrito-state.js"></script>
-<script type="module">
-    import { actualizarBadgeCarrito } from './js/carrito-state.js';
-    document.addEventListener('DOMContentLoaded', () => {
-        actualizarBadgeCarrito();
-    });
-</script>
 </body>
 
 </html>
