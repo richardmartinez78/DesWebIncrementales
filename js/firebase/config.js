@@ -1,41 +1,36 @@
-// js/firebase/config.js
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { 
-    getAuth, 
-    createUserWithEmailAndPassword, 
-    signInWithEmailAndPassword, 
-    signOut, 
-    onAuthStateChanged 
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+/**
+ * js/firebase/config.js
+ * Configuración e instancias únicas de Firebase para toda la aplicación
+ */
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { 
     getFirestore, 
     doc, 
-    setDoc, 
-    getDoc 
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    collection, 
+    runTransaction, 
+    serverTimestamp 
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// Configuración de tu proyecto en Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyCgj_twZ_2oNGnQSePSahjyCapZnyMwijg",
-  authDomain: "fir-authentication-20451.firebaseapp.com",
-  projectId: "fir-authentication-20451",
-  storageBucket: "fir-authentication-20451.firebasestorage.app",
-  messagingSenderId: "179675001258",
-  appId: "1:179675001258:web:76d8a32ab0925430ecbbd3"
+    // Coloca aquí tus credenciales de Firebase
+    apiKey: "TU_API_KEY",
+    authDomain: "tu-app.firebaseapp.com",
+    projectId: "tu-app-id",
+    storageBucket: "tu-app.appspot.com",
+    messagingSenderId: "123456789",
+    appId: "1:123456789:web:abcdef"
 };
 
-// Inicializar servicios de Firebase
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+let app = null;
+let db = null;
 
-// Re-exportar métodos requeridos por auth.js
-export { 
-    createUserWithEmailAndPassword, 
-    signInWithEmailAndPassword, 
-    signOut, 
-    onAuthStateChanged,
-    doc, 
-    setDoc, 
-    getDoc 
-};
+try {
+    app = initializeApp(firebaseConfig);
+    db = getFirestore(app);
+} catch (error) {
+    console.warn("Modo local activo: Firebase no inicializado.", error);
+}
+
+// Exportamos las herramientas desde una única instancia
+export { db, doc, collection, runTransaction, serverTimestamp };

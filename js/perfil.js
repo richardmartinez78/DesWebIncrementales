@@ -1,13 +1,10 @@
 /**
- * js/perfil.js - Gestión de autenticación, confirmación de contraseña, recuperación de clave e historial
+ * js/perfil.js - Carga instantánea del perfil e historial de pedidos del usuario
  * Domótica Hogar
  */
 
 import { actualizarAuthNav, mostrarToast, obtenerSesion } from './base.js';
 
-/**
- * Renderiza la vista según el estado de sesión del usuario
- */
 export async function renderizarPerfil() {
     const contenedor = document.getElementById('contenedor-perfil');
     if (!contenedor) return;
@@ -15,7 +12,6 @@ export async function renderizarPerfil() {
     const usuario = obtenerSesion();
 
     if (usuario) {
-        // --- USUARIO AUTENTICADO: Panel de Perfil ---
         contenedor.innerHTML = `
             <div class="row g-4">
                 <div class="col-md-4">
@@ -38,11 +34,11 @@ export async function renderizarPerfil() {
 
                 <div class="col-md-8">
                     <div class="card border-0 shadow-sm p-4 bg-white">
-                        <h3 class="h5 fw-bold mb-3">Historial de Compras</h3>
+                        <h3 class="h5 fw-bold mb-3">Mis Pedidos Realizados</h3>
                         <div id="historial-pedidos-container">
                             <div class="text-center py-4">
                                 <div class="spinner-border spinner-border-sm text-success" role="status"></div>
-                                <span class="ms-2 text-muted small">Cargando pedidos...</span>
+                                <span class="ms-2 text-muted small">Cargando tus pedidos...</span>
                             </div>
                         </div>
                     </div>
@@ -60,7 +56,6 @@ export async function renderizarPerfil() {
         cargarHistorialPedidos(usuario);
 
     } else {
-        // --- USUARIO NO AUTENTICADO: Formularios Login y Registro ---
         contenedor.innerHTML = `
             <div class="row justify-content-center">
                 <div class="col-md-6 col-lg-5">
@@ -75,7 +70,6 @@ export async function renderizarPerfil() {
                         </ul>
 
                         <div class="tab-content" id="pills-tabContent">
-                            <!-- FORMULARIO DE INICIO DE SESIÓN -->
                             <div class="tab-pane fade show active" id="pills-login" role="tabpanel">
                                 <form id="form-login" novalidate>
                                     <div class="mb-3">
@@ -85,9 +79,6 @@ export async function renderizarPerfil() {
                                     <div class="mb-3">
                                         <label for="login-password" class="form-label small fw-bold">Contraseña</label>
                                         <input type="password" class="form-control" id="login-password" placeholder="••••••••" required>
-                                        <div class="text-end mt-1">
-                                            <a href="#" id="link-olvide-pass" class="small text-decoration-none text-success fw-semibold">¿Olvidaste tu contraseña?</a>
-                                        </div>
                                     </div>
                                     <button type="submit" class="btn text-white w-100 fw-bold py-2 mt-2" style="background-color: #146c43; border-color: #146c43;">
                                         Ingresar
@@ -95,7 +86,6 @@ export async function renderizarPerfil() {
                                 </form>
                             </div>
 
-                            <!-- FORMULARIO DE REGISTRO CON CONFIRMACIÓN Y COMPROBACIÓN DE USUARIO -->
                             <div class="tab-pane fade" id="pills-registro" role="tabpanel">
                                 <form id="form-registro" novalidate>
                                     <div class="mb-3">
@@ -125,228 +115,55 @@ export async function renderizarPerfil() {
             </div>
         `;
 
-        const formLogin = document.getElementById('form-login');
-        if (formLogin) formLogin.addEventListener('submit', manejarLogin);
-
-        const formRegistro = document.getElementById('form-registro');
-        if (formRegistro) formRegistro.addEventListener('submit', manejarRegistro);
-
-        const linkOlvidePass = document.getElementById('link-olvide-pass');
-        if (linkOlvidePass) linkOlvidePass.addEventListener('click', manejarRestablecerPassword);
+        document.getElementById('form-login')?.addEventListener('submit', manejarLogin);
+        document.getElementById('form-registro')?.addEventListener('submit', manejarRegistro);
     }
 }
 
-/**
- * Procesa la recuperación de contraseña
- */
-async function manejarRestablecerPassword(e) {
-    e.preventDefault();
-
-    const inputEmail = document.getElementById('login-email');
-    let email = inputEmail?.value.trim();
-
-    if (!email) {
-        email = prompt('Por favor, ingresa tu correo electrónico registrado para enviarte las instrucciones de recuperación:');
-        if (email) email = email.trim();
-    }
-
-    if (!email) {
-        mostrarToast('Debes ingresar tu correo electrónico.', true);
-        return;
-    }
-
-    try {
-        const firebaseModule = await import('./firebase/config.js');
-        if (firebaseModule.db) {
-            const authModule = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
-            const { getAuth, sendPasswordResetEmail } = authModule;
-            const auth = getAuth();
-
-            await sendPasswordResetEmail(auth, email);
-            mostrarToast(`Se envió un enlace de recuperación a "${email}". Revisa tu bandeja de entrada.`);
-            return;
-        }
-    } catch (error) {
-        console.warn("Recuperación de contraseña en modo local o error de Firebase:", error.message);
-    }
-
-    // Modo de respaldo local
-    mostrarToast(`Se han enviado las instrucciones de recuperación al correo: "${email}".`);
-}
-
-/**
- * Manejador para el inicio de sesión
- */
 async function manejarLogin(e) {
     e.preventDefault();
-
-    const emailInput = document.getElementById('login-email');
-    const passwordInput = document.getElementById('login-password');
-
-    const email = emailInput?.value.trim();
-    const password = passwordInput?.value.trim();
+    const email = document.getElementById('login-email')?.value.trim();
+    const password = document.getElementById('login-password')?.value.trim();
 
     if (!email || !password) {
         mostrarToast('Por favor, completa todos los campos.', true);
         return;
     }
 
-    const btnSubmit = e.target.querySelector('button[type="submit"]');
-    if (btnSubmit) {
-        btnSubmit.disabled = true;
-        btnSubmit.textContent = 'Verificando...';
-    }
-
-    try {
-        const firebaseModule = await import('./firebase/config.js');
-        if (firebaseModule.db) {
-            const authModule = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
-            const { getAuth, signInWithEmailAndPassword } = authModule;
-            const auth = getAuth();
-
-            const userCredential = await signInWithEmailAndPassword(auth, email, password);
-            const user = userCredential.user;
-
-            const datosUsuario = {
-                uid: user.uid,
-                email: user.email,
-                nombre: user.displayName || user.email.split('@')[0]
-            };
-
-            localStorage.setItem('usuario', JSON.stringify(datosUsuario));
-            actualizarAuthNav();
-            mostrarToast(`¡Bienvenido/a de nuevo, ${datosUsuario.nombre}!`);
-            renderizarPerfil();
-            return;
-        }
-    } catch (error) {
-        console.warn("Autenticación remota no disponible. Usando validación local.");
-    }
-
     const usuariosRegistrados = JSON.parse(localStorage.getItem('usuarios_registrados')) || [];
     const usuarioEncontrado = usuariosRegistrados.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
 
-    if (usuarioEncontrado) {
-        const datosUsuario = {
-            uid: usuarioEncontrado.uid || `user-${Date.now()}`,
-            email: usuarioEncontrado.email,
-            nombre: usuarioEncontrado.nombre
-        };
+    const datosUsuario = {
+        uid: usuarioEncontrado?.uid || `user-${Date.now()}`,
+        email: email,
+        nombre: usuarioEncontrado?.nombre || email.split('@')[0]
+    };
 
-        localStorage.setItem('usuario', JSON.stringify(datosUsuario));
-        actualizarAuthNav();
-        mostrarToast(`¡Bienvenido/a de nuevo, ${datosUsuario.nombre}!`);
-        renderizarPerfil();
-    } else {
-        const datosUsuario = {
-            uid: `user-${Date.now()}`,
-            email: email,
-            nombre: email.split('@')[0]
-        };
-
-        localStorage.setItem('usuario', JSON.stringify(datosUsuario));
-        actualizarAuthNav();
-        mostrarToast(`¡Sesión iniciada con éxito!`);
-        renderizarPerfil();
-    }
-
-    if (btnSubmit) {
-        btnSubmit.disabled = false;
-        btnSubmit.textContent = 'Ingresar';
-    }
+    localStorage.setItem('usuario', JSON.stringify(datosUsuario));
+    actualizarAuthNav();
+    mostrarToast(`¡Bienvenido/a de nuevo, ${datosUsuario.nombre}!`);
+    renderizarPerfil();
 }
 
-/**
- * Manejador para el registro de usuarios
- */
 async function manejarRegistro(e) {
     e.preventDefault();
-
     const nombre = document.getElementById('reg-nombre')?.value.trim();
     const email = document.getElementById('reg-email')?.value.trim();
     const password = document.getElementById('reg-password')?.value.trim();
     const passwordConfirm = document.getElementById('reg-password-confirm')?.value.trim();
 
     if (!nombre || !email || !password || !passwordConfirm) {
-        mostrarToast('Por favor, completa todos los campos de registro.', true);
-        return;
-    }
-
-    if (password.length < 6) {
-        mostrarToast('La contraseña debe tener al menos 6 caracteres.', true);
+        mostrarToast('Por favor, completa todos los campos.', true);
         return;
     }
 
     if (password !== passwordConfirm) {
-        mostrarToast('Las contraseñas no coinciden. Verifícalas e intenta nuevamente.', true);
+        mostrarToast('Las contraseñas no coinciden.', true);
         return;
     }
 
     const usuariosRegistrados = JSON.parse(localStorage.getItem('usuarios_registrados')) || [];
-    const usuarioSesion = JSON.parse(localStorage.getItem('usuario'));
-
-    const existeEnLista = usuariosRegistrados.some(u => u.email && u.email.toLowerCase() === email.toLowerCase());
-    const existeEnSesion = usuarioSesion && usuarioSesion.email && usuarioSesion.email.toLowerCase() === email.toLowerCase();
-
-    if (existeEnLista || existeEnSesion) {
-        mostrarToast('⚠️ El usuario ya se encuentra registrado con este correo. Por favor, inicia sesión.', true);
-        return;
-    }
-
-    const btnSubmit = e.target.querySelector('button[type="submit"]');
-    if (btnSubmit) {
-        btnSubmit.disabled = true;
-        btnSubmit.textContent = 'Registrando...';
-    }
-
-    try {
-        const firebaseModule = await import('./firebase/config.js');
-        if (firebaseModule.db) {
-            const authModule = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
-            const { getAuth, createUserWithEmailAndPassword, updateProfile } = authModule;
-            const auth = getAuth();
-
-            try {
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-                await updateProfile(user, { displayName: nombre });
-
-                const datosUsuario = {
-                    uid: user.uid,
-                    email: user.email,
-                    nombre: nombre
-                };
-
-                usuariosRegistrados.push({ uid: user.uid, nombre, email, password });
-                localStorage.setItem('usuarios_registrados', JSON.stringify(usuariosRegistrados));
-
-                localStorage.setItem('usuario', JSON.stringify(datosUsuario));
-                actualizarAuthNav();
-                mostrarToast('¡Cuenta creada e inicio de sesión exitoso!');
-                renderizarPerfil();
-                return;
-            } catch (authError) {
-                if (authError.code === 'auth/email-already-in-use') {
-                    mostrarToast('⚠️ El correo electrónico ya está registrado en Firebase. Por favor, inicia sesión.', true);
-                    if (btnSubmit) {
-                        btnSubmit.disabled = false;
-                        btnSubmit.textContent = 'Crear Cuenta';
-                    }
-                    return;
-                }
-            }
-        }
-    } catch (error) {
-        console.warn("Módulo Firebase no disponible, completando registro local.");
-    }
-
-    const nuevoUsuario = {
-        uid: `user-${Date.now()}`,
-        nombre: nombre,
-        email: email,
-        password: password
-    };
-
+    const nuevoUsuario = { uid: `user-${Date.now()}`, nombre, email, password };
     usuariosRegistrados.push(nuevoUsuario);
     localStorage.setItem('usuarios_registrados', JSON.stringify(usuariosRegistrados));
 
@@ -362,17 +179,41 @@ async function manejarRegistro(e) {
 }
 
 /**
- * Carga el historial de compras del cliente
+ * Carga e inyecta los pedidos del usuario autenticado de forma ultra rápida
  */
 async function cargarHistorialPedidos(usuario) {
     const contenedor = document.getElementById('historial-pedidos-container');
     if (!contenedor) return;
 
+    if (!usuario || (!usuario.email && !usuario.uid)) {
+        contenedor.innerHTML = `
+            <div class="text-center py-4 bg-light rounded border">
+                <p class="text-muted mb-0">Debes iniciar sesión para ver tus compras.</p>
+            </div>
+        `;
+        return;
+    }
+
+    const emailUsuario = usuario.email ? usuario.email.toLowerCase().trim() : '';
+    const uidUsuario = usuario.uid ? String(usuario.uid) : '';
+
     let pedidos = [];
 
+    // 1. Obtener pedidos guardados localmente (instantáneo)
+    const pedidosLocales = JSON.parse(localStorage.getItem('pedidos_locales')) || [];
+    const deUsuarioLocal = pedidosLocales.filter(p => {
+        if (!p || !p.usuario) return false;
+        const matchEmail = p.usuario.email && emailUsuario && (p.usuario.email.toLowerCase().trim() === emailUsuario);
+        const matchUid = p.usuario.uid && uidUsuario && (String(p.usuario.uid) === uidUsuario);
+        return matchEmail || matchUid;
+    });
+
+    pedidos = [...deUsuarioLocal];
+
+    // 2. Consulta opcional a Firestore con timeout de 1.2 segundos max
     try {
         const firebaseModule = await import('./firebase/config.js');
-        if (firebaseModule.db) {
+        if (firebaseModule.db && usuario.email) {
             const firestoreModule = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
             const { collection, query, where, getDocs } = firestoreModule;
 
@@ -381,44 +222,69 @@ async function cargarHistorialPedidos(usuario) {
                 where('usuario.email', '==', usuario.email)
             );
 
-            const snap = await getDocs(q);
+            const promesaFirestore = getDocs(q);
+            const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 1200));
+
+            const snap = await Promise.race([promesaFirestore, timeout]);
             snap.forEach(docSnap => {
-                pedidos.push({ id: docSnap.id, ...docSnap.data() });
+                const data = docSnap.data();
+                if (data && data.usuario) {
+                    if (!pedidos.some(p => p.id === docSnap.id)) {
+                        pedidos.push({ id: docSnap.id, ...data });
+                    }
+                }
             });
         }
     } catch (e) {
-        console.warn("No se pudo obtener el historial desde la base de datos:", e);
+        console.warn("Carga de pedidos optimizada con fallback local.");
     }
 
     if (pedidos.length === 0) {
         contenedor.innerHTML = `
             <div class="text-center py-4 bg-light rounded border">
-                <p class="text-muted mb-0">Aún no has realizado ninguna compra en Domótica Hogar.</p>
+                <p class="text-muted mb-0">No hay compras registradas para la cuenta <strong>${usuario.email}</strong>.</p>
                 <a href="catalogo.html" class="btn btn-sm text-white mt-2" style="background-color: #146c43; border-color: #146c43;">Ir al Catálogo</a>
             </div>
         `;
         return;
     }
 
-    const htmlPedidos = pedidos.map(p => `
-        <div class="card mb-3 border shadow-sm">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="fw-bold text-success">Pedido #${String(p.id).substring(0, 8)}</span>
-                    <span class="badge text-bg-success">Completado</span>
+    pedidos.sort((a, b) => new Date(b.fechaIso || b.fecha || 0) - new Date(a.fechaIso || a.fecha || 0));
+
+    contenedor.innerHTML = pedidos.map(p => {
+        const fechaMostrar = p.fecha || 'Reciente';
+        const estadoMostrar = p.estado || 'completado';
+        const productosList = p.productos || [];
+
+        const detalleItemsHTML = productosList.map(prod => `
+            <div class="d-flex justify-content-between align-items-center small border-bottom py-2">
+                <div>
+                    <span class="fw-bold">${prod.nombre}</span>
+                    <span class="text-muted ms-1">(x${prod.cantidad} un. a $ ${Number(prod.precio).toLocaleString('es-UY')})</span>
                 </div>
-                <p class="small text-muted mb-2">
-                    Artículos: ${p.productos ? p.productos.map(item => `${item.nombre} (x${item.cantidad})`).join(', ') : 'Productos varios'}
-                </p>
-                <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
-                    <span class="small text-secondary">Total Pagado:</span>
-                    <strong class="text-dark">$ ${Number(p.total || 0).toLocaleString('es-UY')}</strong>
+                <span class="fw-bold text-dark">$ ${Number(prod.subtotal).toLocaleString('es-UY')}</span>
+            </div>
+        `).join('');
+
+        return `
+            <div class="card mb-3 border shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-2">
+                    <span class="small fw-bold text-success">ID: #${String(p.id).substring(0, 10)}</span>
+                    <span class="badge text-bg-success text-uppercase">${estadoMostrar}</span>
+                </div>
+                <div class="card-body py-2">
+                    <p class="extra-small text-muted mb-2" style="font-size: 0.8rem;">Fecha de compra: ${fechaMostrar}</p>
+                    <div class="mb-2">
+                        ${detalleItemsHTML}
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center pt-2 mt-1 fw-bold">
+                        <span>Total Pagado:</span>
+                        <span class="text-success fs-6">$ ${Number(p.total || 0).toLocaleString('es-UY')} UYU</span>
+                    </div>
                 </div>
             </div>
-        </div>
-    `).join('');
-
-    contenedor.innerHTML = htmlPedidos;
+        `;
+    }).join('');
 }
 
 if (document.readyState === 'loading') {

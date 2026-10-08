@@ -1,86 +1,83 @@
 /**
- * js/base.js - Funciones globales, contador de carrito, notificaciones Toast e inicio de sesión
+ * js/base.js - Funciones globales de sesión, contador de carrito y notificaciones
  * Domótica Hogar
  */
 
-/**
- * Actualiza el contador de insignias del carrito en la barra de navegación
- */
-export function actualizarBadgeCarrito() {
-    const carrito = JSON.parse(localStorage.getItem('carrito')) || [];
-    const totalCantidad = carrito.reduce((sum, item) => sum + (parseInt(item.cantidad, 10) || 0), 0);
-
-    const badges = document.querySelectorAll('#cant-carrito, #badge-carrito, .badge-carrito, #contador-carrito');
-    badges.forEach(badge => {
-        badge.textContent = totalCantidad;
-    });
+export function obtenerSesion() {
+    try {
+        return JSON.parse(localStorage.getItem('usuario')) || null;
+    } catch (e) {
+        return null;
+    }
 }
 
-export const actualizarContadorCarritoGlobal = actualizarBadgeCarrito;
+export function actualizarBadgeCarrito() {
+    let carrito = [];
+    try {
+        carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+    } catch (e) {
+        carrito = [];
+    }
 
-/**
- * Muestra las notificaciones flotantes Toast
- */
+    const totalItems = carrito.reduce((sum, item) => sum + (parseInt(item.cantidad, 10) || 1), 0);
+
+    const badge1 = document.getElementById('cant-carrito');
+    const badge2 = document.getElementById('badge-carrito');
+
+    if (badge1) badge1.textContent = totalItems;
+    if (badge2) badge2.textContent = totalItems;
+}
+
 export function mostrarToast(mensaje, esError = false) {
-    const toastEl = document.getElementById('appToast');
-    const toastMessage = document.getElementById('toastMessage');
+    const toastEl = document.getElementById('appToast') || document.getElementById('toast-notificacion');
+    const toastMessageEl = document.getElementById('toastMessage') || document.getElementById('toast-mensaje');
 
-    if (toastEl && toastMessage) {
-        toastMessage.textContent = mensaje;
-        if (window.bootstrap && window.bootstrap.Toast) {
-            const toastInstance = window.bootstrap.Toast.getOrCreateInstance(toastEl);
-            toastEl.className = `toast align-items-center border-0 text-bg-${esError ? 'danger' : 'success'} show`;
-            toastInstance.show();
+    if (toastMessageEl) {
+        toastMessageEl.textContent = mensaje;
+    }
+
+    if (toastEl) {
+        if (esError) {
+            toastEl.classList.add('bg-danger', 'text-white');
         } else {
-            toastEl.className = `toast align-items-center border-0 text-bg-${esError ? 'danger' : 'success'} show`;
-            setTimeout(() => toastEl.classList.remove('show'), 3500);
+            toastEl.classList.remove('bg-danger');
+        }
+
+        if (window.bootstrap && window.bootstrap.Toast) {
+            const toast = new window.bootstrap.Toast(toastEl);
+            toast.show();
+        } else {
+            alert(mensaje);
         }
     } else {
         alert(mensaje);
     }
 }
 
-/**
- * Obtiene la sesión activa desde LocalStorage
- */
-export function obtenerSesion() {
-    try {
-        const usuario = localStorage.getItem('usuario');
-        return usuario ? JSON.parse(usuario) : null;
-    } catch (e) {
-        return null;
-    }
-}
-
-/**
- * Actualiza el Navbar indicando si el usuario ingresó
- */
 export function actualizarAuthNav() {
-    const authContainer = document.getElementById('nav-auth-container');
-    if (!authContainer) return;
+    const container = document.getElementById('nav-auth-container');
+    if (!container) return;
 
-    const sesion = obtenerSesion();
+    const usuario = obtenerSesion();
 
-    if (sesion && (sesion.email || sesion.nombre)) {
-        const nombreMostrar = sesion.nombre || sesion.email.split('@')[0];
-        authContainer.innerHTML = `
-            <span class="text-white small fw-semibold d-none d-sm-inline">Hola, ${nombreMostrar}</span>
-            <a href="perfil.html" class="btn btn-outline-light btn-sm rounded-pill px-3">Mi Perfil</a>
+    if (usuario) {
+        const esAdmin = usuario.rol === 'admin' || (usuario.email && usuario.email.toLowerCase().includes('admin'));
+        container.innerHTML = `
+            <a href="perfil.html" class="btn btn-outline-light btn-sm rounded-pill px-3 me-1">
+                👤 ${usuario.nombre || usuario.email.split('@')[0]}
+            </a>
+            ${esAdmin ? `
+                <a href="admin.html" class="btn btn-warning btn-sm fw-bold rounded-pill px-3">Panel Admin</a>
+            ` : ''}
         `;
     } else {
-        authContainer.innerHTML = `
+        container.innerHTML = `
             <a href="perfil.html" class="btn btn-outline-light btn-sm rounded-pill px-3">Ingresar</a>
         `;
     }
 }
 
-function iniciarBase() {
+document.addEventListener('DOMContentLoaded', () => {
     actualizarBadgeCarrito();
     actualizarAuthNav();
-}
-
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', iniciarBase);
-} else {
-    iniciarBase();
-}
+});
