@@ -1,97 +1,72 @@
 /**
- * js/base.js - Control global de sesión, navegación activa, carrito y toasts
+ * js/base.js - Funciones globales, contador de carrito, notificaciones Toast e inicio de sesión
  * Domótica Hogar
  */
 
-const CLAVES_SESION = [
-    'usuario', 'usuarioActual', 'usuario_actual', 'usuarioLogueado',
-    'usuario_logueado', 'user', 'currentUser', 'current_user',
-    'loggedUser', 'sesion', 'session', 'sesionIniciada', 'token',
-    'auth', 'login', 'perfil'
-];
+/**
+ * Actualiza el contador de insignias del carrito en la barra de navegación
+ */
+export function actualizarBadgeCarrito() {
+    const carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+    const totalCantidad = carrito.reduce((sum, item) => sum + (parseInt(item.cantidad, 10) || 0), 0);
+
+    const badges = document.querySelectorAll('#cant-carrito, #badge-carrito, .badge-carrito, #contador-carrito');
+    badges.forEach(badge => {
+        badge.textContent = totalCantidad;
+    });
+}
+
+export const actualizarContadorCarritoGlobal = actualizarBadgeCarrito;
 
 /**
- * Detecta si existe un usuario con sesión activa en Firebase o localStorage/sessionStorage
+ * Muestra las notificaciones flotantes Toast
  */
-export function obtenerSesion() {
-    const storages = [localStorage, sessionStorage];
+export function mostrarToast(mensaje, esError = false) {
+    const toastEl = document.getElementById('appToast');
+    const toastMessage = document.getElementById('toastMessage');
 
-    for (const storage of storages) {
-        try {
-            // 1. Verificación de Firebase Auth en Storage
-            for (let i = 0; i < storage.length; i++) {
-                const key = storage.key(i);
-                if (key && key.startsWith('firebase:authUser')) {
-                    const val = storage.getItem(key);
-                    if (val && val !== 'null' && val !== 'undefined' && val.trim() !== '') {
-                        return true;
-                    }
-                }
-            }
-
-            // 2. Verificación de claves de sesión personalizadas
-            for (const clave of CLAVES_SESION) {
-                const val = storage.getItem(clave);
-                if (!val) continue;
-
-                const limpio = val.trim();
-                if (
-                    limpio !== '' &&
-                    limpio !== 'null' &&
-                    limpio !== 'undefined' &&
-                    limpio !== 'false' &&
-                    limpio !== '0' &&
-                    limpio !== '[]' &&
-                    limpio !== '{}'
-                ) {
-                    return true;
-                }
-            }
-        } catch (e) {
-            console.error("Error al verificar la sesión:", e);
+    if (toastEl && toastMessage) {
+        toastMessage.textContent = mensaje;
+        if (window.bootstrap && window.bootstrap.Toast) {
+            const toastInstance = window.bootstrap.Toast.getOrCreateInstance(toastEl);
+            toastEl.className = `toast align-items-center border-0 text-bg-${esError ? 'danger' : 'success'} show`;
+            toastInstance.show();
+        } else {
+            toastEl.className = `toast align-items-center border-0 text-bg-${esError ? 'danger' : 'success'} show`;
+            setTimeout(() => toastEl.classList.remove('show'), 3500);
         }
+    } else {
+        alert(mensaje);
     }
-    return false;
 }
 
 /**
- * Actualiza los botones de autenticación en la barra de navegación (#nav-auth-container)
+ * Obtiene la sesión activa desde LocalStorage
  */
-export function actualizarBotonAuth() {
+export function obtenerSesion() {
+    try {
+        const usuario = localStorage.getItem('usuario');
+        return usuario ? JSON.parse(usuario) : null;
+    } catch (e) {
+        return null;
+    }
+}
+
+/**
+ * Actualiza el Navbar indicando si el usuario ingresó
+ */
+export function actualizarAuthNav() {
     const authContainer = document.getElementById('nav-auth-container');
     if (!authContainer) return;
 
-    const haySesion = obtenerSesion();
+    const sesion = obtenerSesion();
 
-    if (haySesion) {
+    if (sesion && (sesion.email || sesion.nombre)) {
+        const nombreMostrar = sesion.nombre || sesion.email.split('@')[0];
         authContainer.innerHTML = `
-            <a href="perfil.html" class="btn btn-outline-light btn-sm rounded-pill px-3">Mi perfil</a>
-            <button id="btn-logout" class="btn btn-danger btn-sm rounded-pill px-3" type="button">Salir</button>
+            <span class="text-white small fw-semibold d-none d-sm-inline">Hola, ${nombreMostrar}</span>
+            <a href="perfil.html" class="btn btn-outline-light btn-sm rounded-pill px-3">Mi Perfil</a>
         `;
-
-        const btnLogout = document.getElementById('btn-logout');
-        if (btnLogout) {
-            btnLogout.onclick = () => {
-                [localStorage, sessionStorage].forEach(storage => {
-                    try {
-                        CLAVES_SESION.forEach(k => storage.removeItem(k));
-
-                        const keysToRemove = [];
-                        for (let i = 0; i < storage.length; i++) {
-                            const key = storage.key(i);
-                            if (key && key.startsWith('firebase:authUser')) {
-                                keysToRemove.push(key);
-                            }
-                        }
-                        keysToRemove.forEach(k => storage.removeItem(k));
-                    } catch (e) {
-                        console.error("Error al cerrar sesión:", e);
-                    }
-                });
-
-                window.location.href = 'index.html';
-            };
-        }
     } else {
         authContainer.innerHTML = `
             <a href="perfil.html" class="btn btn-outline-light btn-sm rounded-pill px-3">Ingresar</a>
@@ -99,94 +74,13 @@ export function actualizarBotonAuth() {
     }
 }
 
-/**
- * Resalta en color blanco brillante el enlace activo en la barra de navegación
- */
-export function marcarNavegacionActiva() {
-    const paginaActual = document.body ? document.body.dataset.page : '';
-    let path = window.location.pathname.split('/').pop().toLowerCase();
-    if (!path || path === '') path = 'index.html';
-
-    const enlaces = document.querySelectorAll('.navbar-nav .nav-link');
-    enlaces.forEach(link => {
-        const pageAttr = link.dataset.page ? link.dataset.page.toLowerCase() : '';
-        const hrefAttr = link.getAttribute('href') ? link.getAttribute('href').toLowerCase() : '';
-
-        const esActivo = (paginaActual && pageAttr === paginaActual.toLowerCase()) ||
-                         (hrefAttr === path) ||
-                         (path === 'index.html' && pageAttr === 'inicio');
-
-        if (esActivo) {
-            link.classList.add('active');
-            link.setAttribute('aria-current', 'page');
-            link.style.setProperty('color', '#ffffff', 'important');
-            link.style.setProperty('opacity', '1', 'important');
-            link.style.fontWeight = '600';
-        } else {
-            link.classList.remove('active');
-            link.removeAttribute('aria-current');
-            link.style.color = '';
-            link.style.opacity = '';
-            link.style.fontWeight = '';
-        }
-    });
-}
-
-/**
- * Actualiza el contador global de productos en el badge del carrito (#cant-carrito)
- */
-export function actualizarBadgeCarrito() {
-    const badge = document.getElementById('cant-carrito');
-    if (!badge) return;
-
-    try {
-        const carrito = JSON.parse(localStorage.getItem('carrito')) || JSON.parse(localStorage.getItem('cart')) || [];
-        const total = carrito.reduce((acc, item) => acc + (parseInt(item.cantidad) || 1), 0);
-        badge.textContent = total;
-    } catch (e) {
-        badge.textContent = '0';
-    }
-}
-
-/**
- * Muestra alertas estilo Toast de Bootstrap
- */
-export function mostrarToast(mensaje, esError = false) {
-    const toastElement = document.getElementById('appToast');
-    const toastMessage = document.getElementById('toastMessage');
-
-    if (!toastElement || !toastMessage) return;
-
-    toastMessage.textContent = mensaje;
-
-    if (esError) {
-        toastElement.classList.add('text-bg-danger');
-    } else {
-        toastElement.classList.remove('text-bg-danger');
-    }
-
-    if (window.bootstrap && window.bootstrap.Toast) {
-        const bootstrapToast = window.bootstrap.Toast.getOrCreateInstance(toastElement);
-        bootstrapToast.show();
-    }
-}
-
-/**
- * Inicialización al cargar el DOM
- */
-function initBase() {
-    actualizarBotonAuth();
-    marcarNavegacionActiva();
+function iniciarBase() {
     actualizarBadgeCarrito();
+    actualizarAuthNav();
 }
-
-window.addEventListener('storage', () => {
-    actualizarBotonAuth();
-    actualizarBadgeCarrito();
-});
 
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initBase);
+    document.addEventListener('DOMContentLoaded', iniciarBase);
 } else {
-    initBase();
+    iniciarBase();
 }

@@ -1,137 +1,350 @@
-import { obtenerProductos, obtenerProductoPorId } from './productos.js';
-import { obtenerCarrito, guardarCarrito } from './carrito-state.js';
+/**
+ * js/producto.js - Carga dinámica de detalles de producto por ID con Firestore / Respaldo Local
+ * Domótica Hogar
+ */
+
+import { actualizarBadgeCarrito, mostrarToast } from './base.js';
+
+const IMAGEN_FALLBACK = 'https://placehold.co/600x400/146c43/ffffff?text=Dom%C3%B3tica+Hogar';
+
+// Catálogo local de respaldo para garantizar que "Ver detalle" funcione siempre
+const productosLocales = [
+    {
+        id: '1',
+        nombre: 'Echo Dot 5ª Generación',
+        categoria: 'Entretenimiento',
+        precio: 3500,
+        stock: 3,
+        disponibilidad: true,
+        descripcion: 'Tu asistente de voz inteligente con sonido mejorado, voces más claras y graves intensos en cualquier habitación. Controla tu hogar inteligente por voz o desde la aplicación.',
+        imagen: 'https://images.unsplash.com/photo-1543512214-318c7553f230?w=600&auto=format&fit=crop&q=80',
+        caracteristicas: [
+            'Conectividad WiFi y Bluetooth integrados',
+            'Compatible con Alexa, Zigbee y Matter',
+            'Detección de temperatura y movimiento',
+            'Controles táctiles superiores y botón para apagar micrófonos'
+        ]
+    },
+    {
+        id: '2',
+        nombre: 'Sistema de Automatización Domótica',
+        categoria: 'Confort',
+        precio: 1990,
+        stock: 5,
+        disponibilidad: true,
+        descripcion: 'Controla la temperatura, la iluminación y los accesos de tu hogar con este hub central inteligente de alta precisión y bajo consumo.',
+        imagen: 'https://images.unsplash.com/photo-1558002038-1055907df827?w=600&auto=format&fit=crop&q=80',
+        caracteristicas: [
+            'Hub central multitono con pantalla táctil',
+            'Compatibilidad con asistentes de voz',
+            'Ahorro energético programable hasta un 30%',
+            'Instalación rápida Plug & Play'
+        ]
+    },
+    {
+        id: '3',
+        nombre: 'Cámara Seguridad IP Exterior',
+        categoria: 'Seguridad',
+        precio: 2350,
+        stock: 8,
+        disponibilidad: true,
+        descripcion: 'Monitorea el exterior de tu hogar en resolución Full HD 1080p con visión nocturna infrarroja, audio bidireccional y resistencia al agua IP66.',
+        imagen: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=600&auto=format&fit=crop&q=80',
+        caracteristicas: [
+            'Visión nocturna HD hasta 30 metros',
+            'Certificación de intemperie IP66',
+            'Notificaciones de movimiento en tiempo real',
+            'Almacenamiento en nube o tarjeta MicroSD'
+        ]
+    },
+    {
+        id: '4',
+        nombre: 'X2 Lámpara Smart Inteligente RGB',
+        categoria: 'Iluminacion',
+        precio: 990,
+        stock: 15,
+        disponibilidad: true,
+        descripcion: 'Pack de 2 lámparas LED inteligentes con 16 millones de colores y luz blanca regulable. Control directo desde tu celular o con comandos de voz.',
+        imagen: 'https://images.unsplash.com/photo-1550985616-10810253b84d?w=600&auto=format&fit=crop&q=80',
+        caracteristicas: [
+            'Rosca estándar E27 de fácil instalación',
+            'Sincronización con música y ritmos',
+            'Bajo consumo de energía 9W LED',
+            'Rutinas de encendido y apagado automáticas'
+        ]
+    },
+    {
+        id: '5',
+        nombre: 'Cerradura Inteligente Biométrica WiFi',
+        categoria: 'Seguridad',
+        precio: 4800,
+        stock: 4,
+        disponibilidad: true,
+        descripcion: 'Asegura tu hogar con tecnología de vanguardia. Apertura por huella dactilar, clave táctil, tarjeta RFID, llaves mecánicas o aplicación móvil.',
+        imagen: 'https://images.unsplash.com/photo-1558002038-1055907df827?w=600&auto=format&fit=crop&q=80',
+        caracteristicas: [
+            'Lector biométrico 360° ultra veloz',
+            'Creación de claves temporales para visitas',
+            'Alarma de intentos fallidos e intromisión',
+            'Batería de larga duración con puerto USB de emergencia'
+        ]
+    },
+    {
+        id: '6',
+        nombre: 'Interruptor Táctil Smart WiFi 3 Vías',
+        categoria: 'Iluminacion',
+        precio: 1250,
+        stock: 12,
+        disponibilidad: true,
+        descripcion: 'Panel táctil de vidrio templado para el control elegante y moderno de luces en tu hogar. Programable desde cualquier lugar mediante WiFi.',
+        imagen: 'https://images.unsplash.com/photo-1544725176-7c40e5a71c5e?w=600&auto=format&fit=crop&q=80',
+        caracteristicas: [
+            'Superficie de cristal templado anti-rayaduras',
+            'Indicador LED retroiluminado sutil',
+            'Sin necesidad de hub adicional',
+            'Compatible con temporizadores y escenas'
+        ]
+    },
+    {
+        id: '7',
+        nombre: 'Sensor de Presencia y Movimiento Zigbee',
+        categoria: 'Seguridad',
+        precio: 890,
+        stock: 10,
+        disponibilidad: true,
+        descripcion: 'Detecta movimientos con un ángulo de 120 grados y hasta 7 metros. Ideal para automatizar encendido de luces y alertas de seguridad.',
+        imagen: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&auto=format&fit=crop&q=80',
+        caracteristicas: [
+            'Ángulo de detección amplio 120°',
+            'Batería ultra eficiente con hasta 2 años de duración',
+            'Tamaño compacto y fácil montaje adhesivo',
+            'Vinculación directa con sirenas y luces'
+        ]
+    },
+    {
+        id: '8',
+        nombre: 'Termostato Inteligente Programable WiFi',
+        categoria: 'Confort',
+        precio: 3200,
+        stock: 2,
+        disponibilidad: true,
+        descripcion: 'Ajusta y automatiza la temperatura ambiente desde tu teléfono. Aprende de tus hábitos para maximizar el confort y reducir costos de energía.',
+        imagen: 'https://images.unsplash.com/photo-1563770660941-20978e870e26?w=600&auto=format&fit=crop&q=80',
+        caracteristicas: [
+            'Pantalla LED de alto contraste',
+            'Programación semanal personalizada',
+            'Reportes de consumo energético mensual',
+            'Geofencing: activa la climatización al acercarte a casa'
+        ]
+    },
+    {
+        id: '9',
+        nombre: 'Google Nest Mini 2ª Generación',
+        categoria: 'Entretenimiento',
+        precio: 2900,
+        stock: 6,
+        disponibilidad: true,
+        descripcion: 'El altavoz inteligente más versátil con el Asistente de Google. Graves dos veces más potentes para disfrutar tus listas de reproducción favoritas.',
+        imagen: 'https://images.unsplash.com/photo-1507646221600-7821e27fb515?w=600&auto=format&fit=crop&q=80',
+        caracteristicas: [
+            'Reconocimiento de voz por usuario Voice Match',
+            'Sonido de 360 grados mejorado',
+            'Soporte integrado para colgar en pared',
+            'Materiales sostenibles fabricados con botellas recicladas'
+        ]
+    },
+    {
+        id: '10',
+        nombre: 'Tira LED Smart RGBIC 5m WiFi',
+        categoria: 'Iluminacion',
+        precio: 1450,
+        stock: 9,
+        disponibilidad: true,
+        descripcion: 'Tira de luz LED flexible con tecnología RGBIC que permite mostrar múltiples colores en una misma línea de forma simultánea.',
+        imagen: 'https://images.unsplash.com/photo-1565814636199-ae8133055c1c?w=600&auto=format&fit=crop&q=80',
+        caracteristicas: [
+            'Efectos dinámicos en segmentos individuales',
+            'Sincronización con micrófono integrado',
+            'Recortable y fácil adherencia 3M',
+            'Largo de 5 metros ampliables'
+        ]
+    },
+    {
+        id: '11',
+        nombre: 'Motor para Cortinas y Persianas WiFi',
+        categoria: 'Confort',
+        precio: 3890,
+        stock: 5,
+        disponibilidad: true,
+        descripcion: 'Motorización silenciosa para automatizar tus cortinas tradicionales sin cambiar los rieles. Abre o cierra según el sol o la hora.',
+        imagen: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=600&auto=format&fit=crop&q=80',
+        caracteristicas: [
+            'Instalación rápida sobre rieles U/I',
+            'Control de posición porcentual (ej. abrir al 50%)',
+            'Sensor de luz solar integrado',
+            'Batería recargable vía USB Type-C'
+        ]
+    },
+    {
+        id: '12',
+        nombre: 'Enchufe Smart WiFi con Medidor de Consumo',
+        categoria: 'Confort',
+        precio: 650,
+        stock: 20,
+        disponibilidad: true,
+        descripcion: 'Convierte cualquier dispositivo tradicional en inteligente. Monitorea el consumo eléctrico en Watts y kWh desde tu smartphone.',
+        imagen: 'https://images.unsplash.com/photo-1544725176-7c40e5a71c5e?w=600&auto=format&fit=crop&q=80',
+        caracteristicas: [
+            'Protección contra sobrecargas e incendios',
+            'Monitoreo del gasto de corriente en tiempo real',
+            'Programación de temporizadores y cuenta regresiva',
+            'Diseño compacto que no bloquea tomas contiguas'
+        ]
+    }
+];
 
 let productoActual = null;
 
-document.addEventListener('DOMContentLoaded', async () => {
-    await cargarDetalleProducto();
-});
+/**
+ * Obtiene el ID del producto desde los parámetros de la URL (?id=...)
+ */
+function obtenerIdDeURL() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('id');
+}
 
-async function cargarDetalleProducto() {
-    const contenedor = document.getElementById('contenedor-producto');
-    if (!contenedor) return;
+/**
+ * Carga la información del producto correspondiente
+ */
+async function cargarProducto() {
+    const productId = obtenerIdDeURL();
 
-    contenedor.innerHTML = `
-        <div class="text-center py-5">
-            <div class="spinner-border text-success" role="status">
-                <span class="visually-hidden">Cargando producto...</span>
-            </div>
-        </div>
-    `;
+    // 1. Buscar en el catálogo local matching por ID
+    let productoEncontrado = productosLocales.find(p => String(p.id) === String(productId));
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const productoId = urlParams.get('id');
+    // 2. Si hay ID, consultar Firestore para obtener datos actualizados en tiempo real si existe
+    if (productId) {
+        try {
+            const firebaseModule = await import('./firebase/config.js');
+            const firestoreModule = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+            
+            if (firebaseModule.db) {
+                const docRef = firestoreModule.doc(firebaseModule.db, 'productos', String(productId));
+                const docSnap = await firestoreModule.getDoc(docRef);
 
-    try {
-        if (productoId) {
-            productoActual = await obtenerProductoPorId(productoId);
+                if (docSnap.exists()) {
+                    productoEncontrado = { id: docSnap.id, ...docSnap.data() };
+                }
+            }
+        } catch (e) {
+            console.warn("Firestore no disponible o error al consultar, usando datos del producto local:", e);
         }
+    }
 
-        if (!productoActual) {
-            const lista = await obtenerProductos();
-            if (lista && lista.length > 0) {
-                productoActual = lista[0];
-            } else {
-                mostrarMensajeError("No se encontraron productos disponibles.");
+    // 3. Si no hay ID o no se encontró en ningún origen, mostrar el producto #1 por defecto
+    if (!productoEncontrado) {
+        productoEncontrado = productosLocales[0];
+    }
+
+    productoActual = productoEncontrado;
+    renderizarDetalleProducto(productoActual);
+}
+
+/**
+ * Dibuja los datos del producto en los elementos de producto.html
+ */
+function renderizarDetalleProducto(prod) {
+    if (!prod) return;
+
+    // Título y elementos informativos
+    const tituloEl = document.getElementById('producto-nombre');
+    const categoriaEl = document.getElementById('producto-categoria');
+    const precioEl = document.getElementById('producto-precio');
+    const descripcionEl = document.getElementById('producto-descripcion');
+    const stockEl = document.getElementById('producto-stock');
+    const imgPrincipal = document.getElementById('producto-imagen-principal');
+    const caracteristicasUl = document.getElementById('producto-caracteristicas');
+
+    if (tituloEl) tituloEl.textContent = prod.nombre || 'Producto';
+    if (categoriaEl) categoriaEl.textContent = prod.categoria || 'General';
+    if (precioEl) precioEl.textContent = `$ ${Number(prod.precio || 0).toLocaleString('es-UY')}`;
+    if (descripcionEl) descripcionEl.textContent = prod.descripcion || 'Sin descripción disponible.';
+
+    // Stock y disponibilidad
+    if (stockEl) {
+        const stockNum = parseInt(prod.stock) || 0;
+        const disponible = prod.disponibilidad !== false && stockNum > 0;
+        
+        if (disponible) {
+            stockEl.className = 'badge text-bg-success-subtle text-success border border-success-subtle fs-6';
+            stockEl.textContent = `En stock: ${stockNum} un.`;
+        } else {
+            stockEl.className = 'badge text-bg-danger-subtle text-danger border border-danger-subtle fs-6';
+            stockEl.textContent = 'Agotado';
+        }
+    }
+
+    // Imagen principal
+    if (imgPrincipal) {
+        imgPrincipal.src = prod.imagen || (Array.isArray(prod.imagenes) ? prod.imagenes[0] : IMAGEN_FALLBACK);
+        imgPrincipal.onerror = () => { imgPrincipal.src = IMAGEN_FALLBACK; };
+    }
+
+    // Características
+    if (caracteristicasUl) {
+        const lista = Array.isArray(prod.caracteristicas) ? prod.caracteristicas : [];
+        if (lista.length > 0) {
+            caracteristicasUl.innerHTML = lista.map(item => `<li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>${item}</li>`).join('');
+        } else {
+            caracteristicasUl.innerHTML = '<li class="text-muted">Garantía oficial y soporte técnico incluido.</li>';
+        }
+    }
+
+    // Configuración del botón "Agregar al Carrito"
+    const btnAgregar = document.getElementById('btn-agregar-detalle');
+    const inputCantidad = document.getElementById('input-cantidad-detalle');
+
+    if (btnAgregar) {
+        btnAgregar.onclick = () => {
+            const stockNum = parseInt(prod.stock) || 0;
+            if (prod.disponibilidad === false || stockNum <= 0) {
+                mostrarToast('El producto se encuentra agotado.', true);
                 return;
             }
-        }
 
-        renderizarProducto(productoActual);
-    } catch (error) {
-        mostrarMensajeError(error.message || "Error al cargar la información del producto.");
+            let cantidad = parseInt(inputCantidad?.value || 1);
+            if (isNaN(cantidad) || cantidad < 1) cantidad = 1;
+
+            if (cantidad > stockNum) {
+                mostrarToast(`No hay suficiente stock. Máximo disponible: ${stockNum}`, true);
+                return;
+            }
+
+            // Agregar al localStorage
+            let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+            const index = carrito.findIndex(item => String(item.id) === String(prod.id));
+
+            if (index !== -1) {
+                carrito[index].cantidad = (carrito[index].cantidad || 1) + cantidad;
+            } else {
+                carrito.push({
+                    id: String(prod.id),
+                    nombre: prod.nombre,
+                    categoria: prod.categoria,
+                    precio: parseFloat(prod.precio),
+                    imagen: prod.imagen || (Array.isArray(prod.imagenes) ? prod.imagenes[0] : IMAGEN_FALLBACK),
+                    cantidad: cantidad
+                });
+            }
+
+            localStorage.setItem('carrito', JSON.stringify(carrito));
+            actualizarBadgeCarrito();
+            mostrarToast(`"${prod.nombre}" (${cantidad} un.) se agregó al carrito.`);
+        };
     }
 }
 
-function renderizarProducto(prod) {
-    const contenedor = document.getElementById('contenedor-producto');
-    if (!contenedor) return;
-
-    const imagenUrl = (prod.imagenes && prod.imagenes.length > 0) ? prod.imagenes[0] : 'https://via.placeholder.com/400';
-    const precioFormateado = typeof prod.precio === 'number' ? prod.precio.toLocaleString('es-UY') : prod.precio;
-    const estaDisponible = prod.disponibilidad !== false && prod.stock > 0;
-
-    contenedor.innerHTML = `
-        <div class="row g-4 bg-white p-4 rounded-3 shadow-sm align-items-center">
-            <div class="col-md-6 text-center">
-                <img src="${imagenUrl}" alt="${prod.nombre || 'Producto'}" class="img-fluid rounded-3" style="max-height: 380px; object-fit: contain;">
-            </div>
-            <div class="col-md-6 d-flex flex-column">
-                <span class="badge bg-success align-self-start mb-2 px-3 py-2 fs-6">${prod.categoria || 'General'}</span>
-                <h1 class="fw-bold mb-3">${prod.nombre || 'Producto sin nombre'}</h1>
-                <p class="text-muted mb-4 fs-6">${prod.descripcion || 'Sin descripción disponible.'}</p>
-                
-                <div class="d-flex align-items-center justify-content-between mb-4">
-                    <span class="display-6 fw-bold text-success">$${precioFormateado}</span>
-                    <span class="badge ${estaDisponible ? 'bg-success-subtle text-success border border-success' : 'bg-danger-subtle text-danger border border-danger'} fs-6 px-3 py-2">
-                        ${estaDisponible ? `Stock disponible: ${prod.stock}` : 'Agotado'}
-                    </span>
-                </div>
-
-                <div class="row g-3 align-items-center mt-auto">
-                    <div class="col-auto">
-                        <label for="input-cantidad" class="col-form-label fw-semibold">Cantidad:</label>
-                    </div>
-                    <div class="col-auto">
-                        <input type="number" id="input-cantidad" class="form-control text-center" value="1" min="1" max="${prod.stock || 1}" style="width: 80px;" ${!estaDisponible ? 'disabled' : ''}>
-                    </div>
-                    <div class="col">
-                        <button id="btn-agregar-carrito" class="btn btn-success w-100 rounded-pill py-2 fw-semibold" ${!estaDisponible ? 'disabled' : ''}>
-                            Agregar al carrito
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-
-    document.getElementById('btn-agregar-carrito')?.addEventListener('click', agregarAlCarrito);
-}
-
-function agregarAlCarrito() {
-    if (!productoActual) return;
-
-    const inputCantidad = document.getElementById('input-cantidad');
-    const cantidad = parseInt(inputCantidad ? inputCantidad.value : 1) || 1;
-
-    if (cantidad > productoActual.stock) {
-        alert(`Solo hay ${productoActual.stock} unidades disponibles.`);
-        return;
-    }
-
-    let carrito = obtenerCarrito();
-    const index = carrito.findIndex(item => item.id === productoActual.id);
-
-    if (index !== -1) {
-        if (carrito[index].cantidad + cantidad > productoActual.stock) {
-            alert(`No puedes agregar más unidades. Supera el stock disponible (${productoActual.stock}).`);
-            return;
-        }
-        carrito[index].cantidad += cantidad;
-    } else {
-        carrito.push({
-            id: productoActual.id,
-            nombre: productoActual.nombre,
-            precio: productoActual.precio,
-            imagen: (productoActual.imagenes && productoActual.imagenes.length > 0) ? productoActual.imagenes[0] : '',
-            cantidad: cantidad,
-            stockMaximo: productoActual.stock
-        });
-    }
-
-    guardarCarrito(carrito);
-    alert("¡Producto agregado al carrito con éxito!");
-}
-
-function mostrarMensajeError(mensaje) {
-    const contenedor = document.getElementById('contenedor-producto');
-    if (contenedor) {
-        contenedor.innerHTML = `
-            <div class="alert alert-danger text-center my-5 shadow-sm" role="alert">
-                ${mensaje}
-                <div class="mt-3">
-                    <a href="catalogo.html" class="btn btn-outline-danger btn-sm rounded-pill">Volver al catálogo</a>
-                </div>
-            </div>`;
-    }
-}
+// Inicialización
+document.addEventListener('DOMContentLoaded', () => {
+    cargarProducto();
+});

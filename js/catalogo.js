@@ -1,142 +1,160 @@
 /**
- * js/catalogo.js - Lógica de renderizado, imágenes estables y filtrado de catálogo
+ * js/catalogo.js - Lógica de renderizado, enlaces a detalle y filtrado de catálogo
  * Domótica Hogar
  */
 
 import { actualizarBadgeCarrito, mostrarToast } from './base.js';
 
-// Lista de productos con imágenes estables de alta disponibilidad
 const productosIniciales = [
     {
-        id: 1,
+        id: '1',
         nombre: 'Echo Dot 5ª Generación',
         categoria: 'Entretenimiento',
         precio: 3500,
         badgeText: '¡Últimas 3 un.!',
         badgeClass: 'text-bg-warning-subtle text-warning-emphasis border-warning-subtle',
         descripcion: 'Tu asistente de voz para control inteligente y música en streaming.',
-        imagen: 'https://images.unsplash.com/photo-1543512214-318c7553f230?w=600&auto=format&fit=crop&q=80'
+        imagen: 'https://images.unsplash.com/photo-1543512214-318c7553f230?w=600&auto=format&fit=crop&q=80',
+        stock: 3,
+        disponibilidad: true
     },
     {
-        id: 2,
+        id: '2',
         nombre: 'Sistema de Automatización Domótica',
         categoria: 'Confort',
         precio: 1990,
         badgeText: '¡Últimas 5 un.!',
         badgeClass: 'text-bg-warning-subtle text-warning-emphasis border-warning-subtle',
         descripcion: 'Controla la temperatura, la iluminación y más con inteligencia y ahorro.',
-        imagen: 'https://images.unsplash.com/photo-1558002038-1055907df827?w=600&auto=format&fit=crop&q=80'
+        imagen: 'https://images.unsplash.com/photo-1558002038-1055907df827?w=600&auto=format&fit=crop&q=80',
+        stock: 5,
+        disponibilidad: true
     },
     {
-        id: 3,
+        id: '3',
         nombre: 'Cámara Seguridad IP Exterior',
         categoria: 'Seguridad',
         precio: 2350,
         badgeText: 'Stock: 8 un.',
         badgeClass: 'text-bg-success-subtle text-success border-success-subtle',
         descripcion: 'Monitorea tu hogar con visión nocturna en alta definición y alertas instantáneas.',
-        imagen: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=600&auto=format&fit=crop&q=80'
+        imagen: 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=600&auto=format&fit=crop&q=80',
+        stock: 8,
+        disponibilidad: true
     },
     {
-        id: 4,
+        id: '4',
         nombre: 'X2 Lámpara Smart Inteligente RGB',
         categoria: 'Iluminacion',
         precio: 990,
         badgeText: 'Stock: 15 un.',
         badgeClass: 'text-bg-success-subtle text-success border-success-subtle',
         descripcion: 'Ambientes adaptables con millones de colores y control desde tu smartphone.',
-        imagen: 'https://images.unsplash.com/photo-1550985616-10810253b84d?w=600&auto=format&fit=crop&q=80'
+        imagen: 'https://images.unsplash.com/photo-1550985616-10810253b84d?w=600&auto=format&fit=crop&q=80',
+        stock: 15,
+        disponibilidad: true
     },
     {
-        id: 5,
+        id: '5',
         nombre: 'Cerradura Inteligente Biométrica WiFi',
         categoria: 'Seguridad',
         precio: 4800,
         badgeText: 'Stock: 4 un.',
         badgeClass: 'text-bg-success-subtle text-success border-success-subtle',
         descripcion: 'Acceso por huella dactilar, clave numérica, tarjeta RFID o app móvil.',
-        imagen: 'https://images.unsplash.com/photo-1558002038-1055907df827?w=600&auto=format&fit=crop&q=80'
+        imagen: 'https://images.unsplash.com/photo-1558002038-1055907df827?w=600&auto=format&fit=crop&q=80',
+        stock: 4,
+        disponibilidad: true
     },
     {
-        id: 6,
+        id: '6',
         nombre: 'Interruptor Táctil Smart WiFi 3 Vías',
         categoria: 'Iluminacion',
         precio: 1250,
         badgeText: 'Stock: 12 un.',
         badgeClass: 'text-bg-success-subtle text-success border-success-subtle',
         descripcion: 'Reemplaza tus llaves tradicionales y programa encendidos automáticos.',
-        imagen: 'https://images.unsplash.com/photo-1544725176-7c40e5a71c5e?w=600&auto=format&fit=crop&q=80'
+        imagen: 'https://images.unsplash.com/photo-1544725176-7c40e5a71c5e?w=600&auto=format&fit=crop&q=80',
+        stock: 12,
+        disponibilidad: true
     },
     {
-        id: 7,
+        id: '7',
         nombre: 'Sensor de Presencia y Movimiento Zigbee',
         categoria: 'Seguridad',
         precio: 890,
         badgeText: 'Stock: 10 un.',
         badgeClass: 'text-bg-success-subtle text-success border-success-subtle',
         descripcion: 'Detecta intrusiones y automatiza el encendido de luces al entrar.',
-        imagen: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&auto=format&fit=crop&q=80'
+        imagen: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&auto=format&fit=crop&q=80',
+        stock: 10,
+        disponibilidad: true
     },
     {
-        id: 8,
+        id: '8',
         nombre: 'Termostato Inteligente Programable WiFi',
         categoria: 'Confort',
         precio: 3200,
         badgeText: '¡Últimas 2 un.!',
         badgeClass: 'text-bg-warning-subtle text-warning-emphasis border-warning-subtle',
         descripcion: 'Optimiza la temperatura de la calefacción o aire y reduce el consumo eléctrico.',
-        imagen: 'https://images.unsplash.com/photo-1563770660941-20978e870e26?w=600&auto=format&fit=crop&q=80'
+        imagen: 'https://images.unsplash.com/photo-1563770660941-20978e870e26?w=600&auto=format&fit=crop&q=80',
+        stock: 2,
+        disponibilidad: true
     },
     {
-        id: 9,
+        id: '9',
         nombre: 'Google Nest Mini 2ª Generación',
         categoria: 'Entretenimiento',
         precio: 2900,
         badgeText: 'Stock: 6 un.',
         badgeClass: 'text-bg-success-subtle text-success border-success-subtle',
         descripcion: 'Asistente de Google integrado con bajos mejorados y reconocimiento de voz.',
-        imagen: 'https://images.unsplash.com/photo-1507646221600-7821e27fb515?w=600&auto=format&fit=crop&q=80'
+        imagen: 'https://images.unsplash.com/photo-1507646221600-7821e27fb515?w=600&auto=format&fit=crop&q=80',
+        stock: 6,
+        disponibilidad: true
     },
     {
-        id: 10,
+        id: '10',
         nombre: 'Tira LED Smart RGBIC 5m WiFi',
         categoria: 'Iluminacion',
         precio: 1450,
         badgeText: 'Stock: 9 un.',
         badgeClass: 'text-bg-success-subtle text-success border-success-subtle',
         descripcion: 'Efectos multicolor simultáneos con sincronización al ritmo de la música.',
-        imagen: 'https://images.unsplash.com/photo-1565814636199-ae8133055c1c?w=600&auto=format&fit=crop&q=80'
+        imagen: 'https://images.unsplash.com/photo-1565814636199-ae8133055c1c?w=600&auto=format&fit=crop&q=80',
+        stock: 9,
+        disponibilidad: true
     },
     {
-        id: 11,
+        id: '11',
         nombre: 'Motor para Cortinas y Persianas WiFi',
         categoria: 'Confort',
         precio: 3890,
         badgeText: 'Stock: 5 un.',
         badgeClass: 'text-bg-success-subtle text-success border-success-subtle',
         descripcion: 'Abre y cierra tus cortinas automáticamente según el horario solar.',
-        imagen: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=600&auto=format&fit=crop&q=80'
+        imagen: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=600&auto=format&fit=crop&q=80',
+        stock: 5,
+        disponibilidad: true
     },
     {
-        id: 12,
+        id: '12',
         nombre: 'Enchufe Smart WiFi con Medidor de Consumo',
         categoria: 'Confort',
         precio: 650,
         badgeText: 'Stock: 20 un.',
         badgeClass: 'text-bg-success-subtle text-success border-success-subtle',
         descripcion: 'Monitorea en tiempo real el gasto de energía de cualquier electrodoméstico.',
-        imagen: 'https://images.unsplash.com/photo-1544725176-7c40e5a71c5e?w=600&auto=format&fit=crop&q=80'
+        imagen: 'https://images.unsplash.com/photo-1544725176-7c40e5a71c5e?w=600&auto=format&fit=crop&q=80',
+        stock: 20,
+        disponibilidad: true
     }
 ];
 
 let productos = [...productosIniciales];
-
-// Imagen de respaldo universal por si falla alguna URL
 const IMAGEN_FALLBACK = 'https://placehold.co/600x400/146c43/ffffff?text=Dom%C3%B3tica+Hogar';
 
-/**
- * Renderiza las tarjetas de productos en #contenedor-catalogo
- */
 function renderizarProductos(lista) {
     const contenedor = document.getElementById('contenedor-catalogo');
     if (!contenedor) return;
@@ -154,35 +172,46 @@ function renderizarProductos(lista) {
         <div class="col-md-6 col-xl-3">
             <article class="placeholder-product border rounded-3 overflow-hidden bg-white shadow-sm h-100 d-flex flex-column justify-content-between">
                 <div>
-                    <img 
-                        src="${prod.imagen}" 
-                        onerror="this.onerror=null; this.src='${IMAGEN_FALLBACK}';" 
-                        class="img-fluid w-100" 
-                        alt="${prod.nombre}" 
-                        style="height: 200px; object-fit: cover;"
-                    >
+                    <a href="producto.html?id=${prod.id}" class="d-block text-decoration-none">
+                        <img 
+                            src="${prod.imagen}" 
+                            onerror="this.onerror=null; this.src='${IMAGEN_FALLBACK}';" 
+                            class="img-fluid w-100" 
+                            alt="${prod.nombre}" 
+                            style="height: 200px; object-fit: cover;"
+                        >
+                    </a>
                     <div class="p-3">
                         <span class="eyebrow text-uppercase text-muted small fw-bold">${prod.categoria}</span>
-                        <span class="badge ${prod.badgeClass} border fw-semibold">${prod.badgeText}</span>
-                        <h3 class="h5 mt-2">${prod.nombre}</h3>
-                        <p class="text-secondary small">${prod.descripcion}</p>
+                        <span class="badge ${prod.badgeClass || 'text-bg-success-subtle text-success border-success-subtle'} border fw-semibold">${prod.badgeText || 'Disponible'}</span>
+                        <h3 class="h5 mt-2">
+                            <a href="producto.html?id=${prod.id}" class="text-dark text-decoration-none hover-primary">
+                                ${prod.nombre}
+                            </a>
+                        </h3>
+                        <p class="text-secondary small text-truncate-2">${prod.descripcion}</p>
                     </div>
                 </div>
-                <div class="p-3 pt-0 d-flex justify-content-between align-items-center">
-                    <strong class="fs-5">$ ${prod.precio.toLocaleString('es-UY')}</strong>
-                    <button data-id="${prod.id}" class="btn btn-agregar-cart text-white rounded-pill px-3 shadow-sm" style="background-color: #146c43; border-color: #146c43;">
-                        Agregar
-                    </button>
+                <div class="p-3 pt-0 d-flex justify-content-between align-items-center gap-2">
+                    <strong class="fs-6 text-nowrap">$ ${Number(prod.precio).toLocaleString('es-UY')}</strong>
+                    <div class="d-flex gap-1">
+                        <a href="producto.html?id=${prod.id}" class="btn btn-sm btn-outline-secondary rounded-pill px-2" title="Ver detalle">
+                            Ver detalle
+                        </a>
+                        <button data-id="${prod.id}" class="btn btn-sm btn-agregar-cart text-white rounded-pill px-2" style="background-color: #146c43; border-color: #146c43;">
+                            Agregar
+                        </button>
+                    </div>
                 </div>
             </article>
         </div>
     `).join('');
 
-    // Event listeners para los botones "Agregar"
+    // Event listeners para agregar directo al carrito
     document.querySelectorAll('.btn-agregar-cart').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            const id = parseInt(e.currentTarget.dataset.id);
-            const productoAgregado = productos.find(p => p.id === id);
+            const id = String(e.currentTarget.dataset.id);
+            const productoAgregado = productos.find(p => String(p.id) === id);
             if (productoAgregado) {
                 agregarAlCarrito(productoAgregado);
             }
@@ -190,12 +219,9 @@ function renderizarProductos(lista) {
     });
 }
 
-/**
- * Agrega el producto al carrito en localStorage
- */
 function agregarAlCarrito(producto) {
     let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
-    const index = carrito.findIndex(item => item.id === producto.id);
+    const index = carrito.findIndex(item => String(item.id) === String(producto.id));
 
     if (index !== -1) {
         carrito[index].cantidad = (carrito[index].cantidad || 1) + 1;
@@ -208,9 +234,6 @@ function agregarAlCarrito(producto) {
     mostrarToast(`"${producto.nombre}" fue agregado al carrito.`);
 }
 
-/**
- * Aplica los filtros combinados
- */
 function aplicarFiltros() {
     const textoBusqueda = (document.getElementById('input-busqueda')?.value || '').toLowerCase();
     const categoriaSeleccionada = document.getElementById('select-categoria')?.value || '';
@@ -234,7 +257,6 @@ function aplicarFiltros() {
     renderizarProductos(resultado);
 }
 
-// Event Listeners e inicialización
 document.addEventListener('DOMContentLoaded', () => {
     renderizarProductos(productos);
 
