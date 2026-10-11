@@ -1,3 +1,47 @@
+# 🚀 Actualizaciones de la Entrega (Sprint 3)
+
+## 1. Funcionalidades Incorporadas
+* **Carga Fast-Load (Estrategia Híbrida):** Timeout de 1.2s en consultas a Firestore con fallback instantáneo a `localStorage` para garantizar la renderización en milisegundos. (Firebase tenía una demora de varios segundos en responder o se congelaba.)
+* **Sistema de Opiniones Verificadas:** Habilitación del formulario de calificación y comentarios únicamente para usuarios que hayan comprado el producto previamente.
+* **Sincronización de Stock en Tiempo Real:** Componente de tarjeta unificado que refleja automáticamente el stock disponible en Inicio, Catálogo y Detalle tras compras o reposiciones.
+* **Historial de Pedidos:** Sección en el perfil de usuario con desglose detallado de compras realizadas y sus estados.
+* **Panel de Administración (CRUD):** Control de inventario para crear, modificar stock o ajustar precios de productos. (En desarrollo.)
+
+---
+
+## 2. Organización del Código JavaScript (`/js`)
+El proyecto sigue una arquitectura modular con ES Modules:
+
+* `js/base.js`: Helper global para manejo de sesión (`obtenerSesion`), badge del carrito (`actualizarBadgeCarrito`), actualización del Navbar y notificaciones Toast.
+* `js/firebase/config.js`: Exportación de la instancia única de Firestore (`db`) e inicialización centralizada del SDK de Firebase.
+* `js/productos.js`: Gestión del catálogo, detalle de producto, componente de tarjeta reutilizable e integración con la grilla de Inicio.
+* `js/carrito-view.js`: Lógica del carrito de compras, cálculo de subtotales y proceso de checkout instantáneo.
+* `js/resenas.js`: Módulo de valoraciones y algoritmo de verificación de compra previa (`haCompradoProducto`).
+* `js/perfil.js`: Autenticación de usuario, persistencia de sesión e historial de compras.
+* `js/admin.js`: Control y modificación de inventario para administradores. (En desarrollo)
+
+---
+
+## 3. Registro y Autenticación de Usuarios
+* **Autenticación Híbrida:** Procesa el inicio de sesión y registro a través de Firebase Auth con respaldo local inmediato en `localStorage` (`usuario`).
+* **Roles de Acceso:** Asignación de roles (`cliente` o `admin`) que controla de forma dinámica la visibilidad del botón **Panel Admin** en el Navbar. **Panel Admin** en desarrollo.
+* **Persistencia:** La sesión activa se conserva entre navegaciones para asegurar que los pedidos y permisos de reseña queden vinculados directamente a la cuenta del usuario (`email` / `uid`).
+
+---
+
+## 4. Confirmación de Compra y Actualización de Stock
+1. **Validación:** El sistema verifica que la cantidad solicitada no supere el stock máximo disponible antes de permitir el checkout.
+2. **Registro de Pedido:** Se genera un objeto `pedido` con un ID único (`pedido-Timestamp`), datos del usuario, desglose de ítems, monto total y marca temporal.
+3. **Descuento de Stock Transaccional:** Se descuentan las unidades compradas del inventario en `localStorage` (`productos_locales`) de forma instantánea y se intenta la actualización diferida en Firestore.
+4. **Habilitación de Permisos:** El pedido se añade a `pedidos_locales`, lo que desbloquea automáticamente el derecho del usuario a calificar e interactuar en la sección de opiniones del producto adquirido.
+
+---
+## 5. Se atienden sugerencias de mejora.
+* **Selección de imégenes de mejor calidad:** Mejor ajuste a dimensiones y descripción.
+* **Modificación del direccionamiento de productos destacados del homepage:** En lugar de direccionar a "Catálogo" ahora llevan a "Producto".
+
+
+
 # 🛒 Sprint 2 - Actualización del Proyecto y mejoras opcionales
 
 ## 🚀 Funcionalidades Incorporadas
