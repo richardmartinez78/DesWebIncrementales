@@ -6,10 +6,30 @@
 import { actualizarAuthNav, mostrarToast, obtenerSesion } from './base.js';
 import { PRODUCTOS_MOCK } from './productos.js';
 
+// =====================================================================
+// 🛡️ GUARDIÁN DE SEGURIDAD (PRIMERA LÍNEA DE EJECUCIÓN)
+// =====================================================================
+const _sesionActiva = obtenerSesion();
+const _esAdmin = _sesionActiva && (
+    _sesionActiva.rol === 'admin' || 
+    (_sesionActiva.email && (
+        _sesionActiva.email.toLowerCase().includes('admin') || 
+        _sesionActiva.email.toLowerCase() === 'admin@domotica.com'
+    ))
+);
+
+if (!_esAdmin) {
+    // Expulsa al cliente inmediatamente al inicio
+    window.location.replace('index.html');
+    // Detiene por completo la ejecución de cualquier código debajo de esta línea
+    throw new Error("🚨 ACCESO DENEGADO: Intento de acceso no autorizado al panel de administración.");
+}
+// =====================================================================
+
 let modalBS = null;
 
 /**
- * Valida si el usuario actual tiene permisos de Administrador
+ * Valida si el usuario actual tiene permisos de Administrador (Doble validación para funciones)
  */
 export function esAdministrador(usuario) {
     if (!usuario) return false;
@@ -34,30 +54,9 @@ export async function renderizarPanelAdmin() {
     actualizarAuthNav();
     const usuario = obtenerSesion();
 
-    // 1. VALIDACIÓN DE ROL DE ADMINISTRADOR
+    // 1. VALIDACIÓN DE ROL DE ADMINISTRADOR (Redundancia de seguridad)
     if (!usuario || !esAdministrador(usuario)) {
-        contenedor.innerHTML = `
-            <div class="row justify-content-center py-5">
-                <div class="col-md-8 col-lg-6 text-center">
-                    <div class="card border-danger shadow-sm p-4 bg-white">
-                        <div class="text-danger mb-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" fill="currentColor" class="bi bi-shield-lock-fill" viewBox="0 0 16 16">
-                                <path fill-rule="evenodd" d="M8 0c-.69 0-1.843.265-2.928.56-1.11.3-2.229.655-2.887.87a1.54 1.54 0 0 0-1.044 1.262c-.596 4.477.787 7.795 2.465 9.99a11.8 11.8 0 0 0 4.173 3.101c.086.038.19.038.276 0a11.8 11.8 0 0 0 4.173-3.101c1.678-2.195 3.061-5.513 2.465-9.99a1.54 1.54 0 0 0-1.044-1.263 63 63 0 0 0-2.887-.87C9.843.266 8.69 0 8 0m0 5a1.5 1.5 0 0 1 .5 2.915V9.5a.5.5 0 0 1-1 0V7.915A1.5 1.5 0 0 1 8 5"/>
-                            </svg>
-                        </div>
-                        <h3 class="h4 fw-bold text-danger">Acceso Restringido</h3>
-                        <p class="text-secondary small mb-4">
-                            Este panel está reservado exclusivamente para administradores autenticados.
-                        </p>
-                        <div class="d-flex justify-content-center gap-2">
-                            <a href="perfil.html" class="btn btn-outline-secondary btn-sm">Ir a Mi Perfil</a>
-                            <a href="index.html" class="btn btn-success btn-sm">Volver al Inicio</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-        return;
+        return; // El guardián ya se encargó de expulsarlo, pero mantenemos esta capa extra
     }
 
     // 2. PANEL ADMINISTRATIVO PRINCIPAL (USUARIO ADMIN AUTORIZADO)
@@ -446,6 +445,6 @@ async function darBajaProducto(id) {
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', renderizarPanelAdmin);
-} else {
+} else {       
     renderizarPanelAdmin();
 }

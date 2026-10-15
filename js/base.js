@@ -1,83 +1,95 @@
 /**
- * js/base.js - Funciones globales de sesión, contador de carrito y notificaciones
+ * js/base.js - Helper global para manejo de sesión, UI y roles
  * Domótica Hogar
  */
 
+// 1. OBTENER SESIÓN
 export function obtenerSesion() {
-    try {
-        return JSON.parse(localStorage.getItem('usuario')) || null;
-    } catch (e) {
-        return null;
-    }
+    const usuarioStr = localStorage.getItem('usuario');
+    return usuarioStr ? JSON.parse(usuarioStr) : null;
 }
 
-export function actualizarBadgeCarrito() {
-    let carrito = [];
-    try {
-        carrito = JSON.parse(localStorage.getItem('carrito')) || [];
-    } catch (e) {
-        carrito = [];
-    }
-
-    const totalItems = carrito.reduce((sum, item) => sum + (parseInt(item.cantidad, 10) || 1), 0);
-
-    const badge1 = document.getElementById('cant-carrito');
-    const badge2 = document.getElementById('badge-carrito');
-
-    if (badge1) badge1.textContent = totalItems;
-    if (badge2) badge2.textContent = totalItems;
-}
-
-export function mostrarToast(mensaje, esError = false) {
-    const toastEl = document.getElementById('appToast') || document.getElementById('toast-notificacion');
-    const toastMessageEl = document.getElementById('toastMessage') || document.getElementById('toast-mensaje');
-
-    if (toastMessageEl) {
-        toastMessageEl.textContent = mensaje;
-    }
-
-    if (toastEl) {
-        if (esError) {
+// 2. MOSTRAR TOAST (Notificaciones)
+export function mostrarToast(mensaje, tipo = 'success') {
+    const toastEl = document.getElementById('appToast');
+    const toastBody = document.getElementById('toastMessage');
+    
+    if (toastEl && toastBody) {
+        toastBody.textContent = mensaje;
+        toastEl.className = 'toast'; 
+        
+        if (tipo === 'error') {
             toastEl.classList.add('bg-danger', 'text-white');
         } else {
-            toastEl.classList.remove('bg-danger');
+            toastEl.classList.add('bg-success', 'text-white');
         }
-
-        if (window.bootstrap && window.bootstrap.Toast) {
-            const toast = new window.bootstrap.Toast(toastEl);
-            toast.show();
-        } else {
-            alert(mensaje);
-        }
-    } else {
-        alert(mensaje);
+        
+        const toast = new bootstrap.Toast(toastEl);
+        toast.show();
     }
 }
 
+// 3. ACTUALIZAR NAVBAR Y AUTH (Roles y Sesión)
 export function actualizarAuthNav() {
-    const container = document.getElementById('nav-auth-container');
-    if (!container) return;
-
     const usuario = obtenerSesion();
+    const authContainer = document.getElementById('nav-auth-container');
+    const adminLink = document.querySelector('a[data-page="admin"]');
+    
+    // A. Mostrar/Ocultar enlace de Administración según el rol
+    if (adminLink) {
+        const adminNavItem = adminLink.closest('.nav-item');
+        // Validamos si es 'admin' o 'administrador'
+        if (usuario && (usuario.rol === 'administrador' || usuario.rol === 'admin')) {
+            adminNavItem.style.display = 'block';
+        } else {
+            adminNavItem.style.display = 'none';
+        }
+    }
 
-    if (usuario) {
-        const esAdmin = usuario.rol === 'admin' || (usuario.email && usuario.email.toLowerCase().includes('admin'));
-        container.innerHTML = `
-            <a href="perfil.html" class="btn btn-outline-light btn-sm rounded-pill px-3 me-1">
-                👤 ${usuario.nombre || usuario.email.split('@')[0]}
-            </a>
-            ${esAdmin ? `
-                <a href="admin.html" class="btn btn-warning btn-sm fw-bold rounded-pill px-3">Panel Admin</a>
-            ` : ''}
-        `;
-    } else {
-        container.innerHTML = `
-            <a href="perfil.html" class="btn btn-outline-light btn-sm rounded-pill px-3">Ingresar</a>
-        `;
+    // B. Actualizar botones de ingreso/salida
+    if (authContainer) {
+        if (usuario) {
+            authContainer.innerHTML = `
+                <span class="text-light me-2 small d-none d-md-inline">Hola, ${usuario.nombre}</span>
+                <button id="btn-logout-nav" class="btn btn-outline-danger btn-sm rounded-pill px-3">Salir</button>
+            `;
+            
+            document.getElementById('btn-logout-nav')?.addEventListener('click', () => {
+                localStorage.removeItem('usuario');
+                window.location.reload();
+            });
+        } else {
+            authContainer.innerHTML = `
+                <a href="perfil.html" class="btn btn-outline-light btn-sm rounded-pill px-3">Ingresar</a>
+            `;
+        }
     }
 }
 
+// 4. ACTUALIZAR BADGE DEL CARRITO (Vital para que no falle JS en otras páginas)
+export function actualizarBadgeCarrito() {
+    const cantCarrito = document.getElementById('cant-carrito');
+    if (cantCarrito) {
+        const carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+        const totalItems = carrito.reduce((sum, item) => sum + item.cantidad, 0);
+        cantCarrito.textContent = totalItems;
+        
+        // Si está en 0, ocultarlo visualmente si lo prefieres, o dejarlo en 0
+        if(totalItems > 0) {
+            cantCarrito.style.display = 'inline-block';
+        }
+    }
+}
+
+// 5. INICIALIZACIÓN GLOBAL (Se ejecuta en todas las páginas)
 document.addEventListener('DOMContentLoaded', () => {
-    actualizarBadgeCarrito();
     actualizarAuthNav();
+    actualizarBadgeCarrito();
+
+    // Comprobar si hay mensajes de error pendientes (Ej. Expulsado de admin.html)
+    const mensajePendiente = localStorage.getItem("toast_mensaje");
+    if (mensajePendiente) {
+        mostrarToast(mensajePendiente, "error");
+        localStorage.removeItem("toast_mensaje");
+    }
 });

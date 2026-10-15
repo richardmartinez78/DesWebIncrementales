@@ -1,5 +1,5 @@
 /**
- * js/perfil.js - Carga instantánea del perfil e historial de pedidos del usuario
+ * js/perfil.js - Carga instantánea del perfil, autenticación y roles con Firestore
  * Domótica Hogar
  */
 
@@ -23,8 +23,8 @@ export async function renderizarPerfil() {
                             </svg>
                         </div>
                         <h2 class="h5 fw-bold mb-1">${usuario.nombre || 'Cliente Domótica'}</h2>
-                        <p class="text-muted small mb-3">${usuario.email}</p>
-                        <span class="badge text-bg-success mb-4 px-3 py-2">Usuario Registrado</span>
+                        <p class="text-muted small mb-1">${usuario.email}</p>
+                        <p class="text-success small fw-bold mb-3 text-uppercase">Rol: ${usuario.rol || 'cliente'}</p>
                         
                         <button id="btn-cerrar-sesion" class="btn btn-outline-danger w-100 btn-sm fw-bold">
                             Cerrar Sesión
@@ -46,7 +46,16 @@ export async function renderizarPerfil() {
             </div>
         `;
 
-        document.getElementById('btn-cerrar-sesion')?.addEventListener('click', () => {
+        document.getElementById('btn-cerrar-sesion')?.addEventListener('click', async () => {
+            try {
+                const firebaseModule = await import('./firebase/config.js');
+                const authModule = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
+                if (firebaseModule.auth) {
+                    await authModule.signOut(firebaseModule.auth);
+                }
+            } catch (e) {
+                console.warn("Cierre de sesión local");
+            }
             localStorage.removeItem('usuario');
             actualizarAuthNav();
             mostrarToast('Has cerrado sesión correctamente.');
@@ -124,25 +133,55 @@ async function manejarLogin(e) {
     e.preventDefault();
     const email = document.getElementById('login-email')?.value.trim();
     const password = document.getElementById('login-password')?.value.trim();
+    const btnSubmit = e.target.querySelector('button[type="submit"]');
 
     if (!email || !password) {
         mostrarToast('Por favor, completa todos los campos.', true);
         return;
     }
 
-    const usuariosRegistrados = JSON.parse(localStorage.getItem('usuarios_registrados')) || [];
-    const usuarioEncontrado = usuariosRegistrados.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
+    try {
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Ingresando...';
 
-    const datosUsuario = {
-        uid: usuarioEncontrado?.uid || `user-${Date.now()}`,
-        email: email,
-        nombre: usuarioEncontrado?.nombre || email.split('@')[0]
-    };
+        const firebaseModule = await import('./firebase/config.js');
+        const authModule = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
+        const firestoreModule = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
 
-    localStorage.setItem('usuario', JSON.stringify(datosUsuario));
-    actualizarAuthNav();
-    mostrarToast(`¡Bienvenido/a de nuevo, ${datosUsuario.nombre}!`);
-    renderizarPerfil();
+        // 1. Iniciar sesión Firebase Auth
+        const userCredential = await authModule.signInWithEmailAndPassword(firebaseModule.auth, email, password);
+        const user = userCredential.user;
+
+        // 2. Obtener rol desde Firestore
+        const docRef = firestoreModule.doc(firebaseModule.db, 'usuarios', user.uid);
+        const docSnap = await firestoreModule.getDoc(docRef);
+        
+        let rolUsuario = 'cliente';
+        let nombreUsuario = user.displayName || email.split('@')[0];
+
+        if (docSnap.exists()) {
+            rolUsuario = docSnap.data().rol || 'cliente';
+            nombreUsuario = docSnap.data().nombre || nombreUsuario;
+        }
+
+        const datosUsuario = {
+            uid: user.uid,
+            email: user.email,
+            nombre: nombreUsuario,
+            rol: rolUsuario
+        };
+
+        localStorage.setItem('usuario', JSON.stringify(datosUsuario));
+        actualizarAuthNav();
+        mostrarToast(`¡Bienvenido/a, ${datosUsuario.nombre}!`);
+        renderizarPerfil();
+
+    } catch (error) {
+        console.error("Error en login:", error);
+        mostrarToast('Credenciales incorrectas o el servicio no está disponible.', true);
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = 'Ingresar';
+    }
 }
 
 async function manejarRegistro(e) {
@@ -151,6 +190,7 @@ async function manejarRegistro(e) {
     const email = document.getElementById('reg-email')?.value.trim();
     const password = document.getElementById('reg-password')?.value.trim();
     const passwordConfirm = document.getElementById('reg-password-confirm')?.value.trim();
+    const btnSubmit = e.target.querySelector('button[type="submit"]');
 
     if (!nombre || !email || !password || !passwordConfirm) {
         mostrarToast('Por favor, completa todos los campos.', true);
@@ -162,25 +202,50 @@ async function manejarRegistro(e) {
         return;
     }
 
-    const usuariosRegistrados = JSON.parse(localStorage.getItem('usuarios_registrados')) || [];
-    const nuevoUsuario = { uid: `user-${Date.now()}`, nombre, email, password };
-    usuariosRegistrados.push(nuevoUsuario);
-    localStorage.setItem('usuarios_registrados', JSON.stringify(usuariosRegistrados));
+    try {
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Creando cuenta...';
 
-    localStorage.setItem('usuario', JSON.stringify({
-        uid: nuevoUsuario.uid,
-        email: nuevoUsuario.email,
-        nombre: nuevoUsuario.nombre
-    }));
+        const firebaseModule = await import('./firebase/config.js');
+        const authModule = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
+        const firestoreModule = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
 
-    actualizarAuthNav();
-    mostrarToast('¡Cuenta creada e inicio de sesión exitoso!');
-    renderizarPerfil();
+        // 1. Crear en Firebase Auth
+        const userCredential = await authModule.createUserWithEmailAndPassword(firebaseModule.auth, email, password);
+        const user = userCredential.user;
+
+        // 2. Guardar documento en Firestore con rol cliente
+        await firestoreModule.setDoc(firestoreModule.doc(firebaseModule.db, 'usuarios', user.uid), {
+            nombre: nombre,
+            email: email,
+            rol: 'cliente',
+            fechaRegistro: new Date().toISOString()
+        });
+
+        const datosUsuario = {
+            uid: user.uid,
+            email: user.email,
+            nombre: nombre,
+            rol: 'cliente'
+        };
+
+        localStorage.setItem('usuario', JSON.stringify(datosUsuario));
+        actualizarAuthNav();
+        mostrarToast('¡Cuenta creada con éxito!');
+        renderizarPerfil();
+
+    } catch (error) {
+        console.error("Error en registro:", error);
+        let mensaje = 'Error al crear la cuenta.';
+        if (error.code === 'auth/email-already-in-use') mensaje = 'El correo ya está registrado.';
+        if (error.code === 'auth/weak-password') mensaje = 'La contraseña debe tener al menos 6 caracteres.';
+        
+        mostrarToast(mensaje, true);
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = 'Crear Cuenta';
+    }
 }
 
-/**
- * Carga e inyecta los pedidos del usuario autenticado de forma ultra rápida
- */
 async function cargarHistorialPedidos(usuario) {
     const contenedor = document.getElementById('historial-pedidos-container');
     if (!contenedor) return;
@@ -195,48 +260,34 @@ async function cargarHistorialPedidos(usuario) {
     }
 
     const emailUsuario = usuario.email ? usuario.email.toLowerCase().trim() : '';
-    const uidUsuario = usuario.uid ? String(usuario.uid) : '';
-
     let pedidos = [];
 
-    // 1. Obtener pedidos guardados localmente (instantáneo)
+    // 1. Carga Local (Respaldo/Instantáneo)
     const pedidosLocales = JSON.parse(localStorage.getItem('pedidos_locales')) || [];
-    const deUsuarioLocal = pedidosLocales.filter(p => {
-        if (!p || !p.usuario) return false;
-        const matchEmail = p.usuario.email && emailUsuario && (p.usuario.email.toLowerCase().trim() === emailUsuario);
-        const matchUid = p.usuario.uid && uidUsuario && (String(p.usuario.uid) === uidUsuario);
-        return matchEmail || matchUid;
-    });
+    pedidos = pedidosLocales.filter(p => p.usuario && p.usuario.email && p.usuario.email.toLowerCase() === emailUsuario);
 
-    pedidos = [...deUsuarioLocal];
-
-    // 2. Consulta opcional a Firestore con timeout de 1.2 segundos max
+    // 2. Consulta a Firestore (Actualizado)
     try {
         const firebaseModule = await import('./firebase/config.js');
         if (firebaseModule.db && usuario.email) {
             const firestoreModule = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
             const { collection, query, where, getDocs } = firestoreModule;
 
-            const q = query(
-                collection(firebaseModule.db, 'pedidos'),
-                where('usuario.email', '==', usuario.email)
-            );
-
+            const q = query(collection(firebaseModule.db, 'pedidos'), where('usuario.email', '==', usuario.email));
+            
             const promesaFirestore = getDocs(q);
-            const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 1200));
-
+            const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 1500));
             const snap = await Promise.race([promesaFirestore, timeout]);
+
             snap.forEach(docSnap => {
                 const data = docSnap.data();
-                if (data && data.usuario) {
-                    if (!pedidos.some(p => p.id === docSnap.id)) {
-                        pedidos.push({ id: docSnap.id, ...data });
-                    }
+                if (!pedidos.some(p => p.id === docSnap.id)) {
+                    pedidos.push({ id: docSnap.id, ...data });
                 }
             });
         }
     } catch (e) {
-        console.warn("Carga de pedidos optimizada con fallback local.");
+        console.warn("Carga de pedidos con fallback local (Timeout o sin conexión).");
     }
 
     if (pedidos.length === 0) {
