@@ -1,9 +1,9 @@
 /**
- * js/catalogo.js - Lógica de renderizado, enlaces a detalle y filtrado de catálogo
+ * js/catalogo.js - Lógica de renderizado, enlaces a detalle, filtrado y control estricto de stock
  * Domótica Hogar
  */
 
-import { actualizarBadgeCarrito, mostrarToast } from './base.js';
+import { actualizarBadgeCarrito, mostrarToast, agregarProductoAlCarritoGlobal } from './base.js';
 
 const productosIniciales = [
     {
@@ -155,6 +155,36 @@ const productosIniciales = [
 let productos = [...productosIniciales];
 const IMAGEN_FALLBACK = 'https://placehold.co/600x400/146c43/ffffff?text=Dom%C3%B3tica+Hogar';
 
+/**
+ * Carga opcional desde Firestore para mantener stock sincronizado
+ */
+async function sincronizarCatalogoConFirestore() {
+    try {
+        const firebaseModule = await import('./firebase/config.js');
+        if (firebaseModule.db) {
+            const { collection, getDocs } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+            const querySnapshot = await getDocs(collection(firebaseModule.db, 'productos'));
+            
+            if (!querySnapshot.empty) {
+                const productosFirestore = [];
+                querySnapshot.forEach(doc => {
+                    productosFirestore.push({ id: doc.id, ...doc.data() });
+                });
+
+                // Reemplazar o actualizar los items locales con datos remotos
+                productos = productosIniciales.map(localItem => {
+                    const remoto = productosFirestore.find(f => String(f.id) === String(localItem.id));
+                    return remoto ? { ...localItem, ...remoto } : localItem;
+                });
+                
+                aplicarFiltros();
+            }
+        }
+    } catch (e) {
+        console.warn("Utilizando datos de catálogo local.", e);
+    }
+}
+
 function renderizarProductos(lista) {
     const contenedor = document.getElementById('contenedor-catalogo');
     if (!contenedor) return;
@@ -168,70 +198,77 @@ function renderizarProductos(lista) {
         return;
     }
 
-    contenedor.innerHTML = lista.map(prod => `
-        <div class="col-md-6 col-xl-3">
-            <article class="placeholder-product border rounded-3 overflow-hidden bg-white shadow-sm h-100 d-flex flex-column justify-content-between">
-                <div>
-                    <a href="producto.html?id=${prod.id}" class="d-block text-decoration-none">
-                        <img 
-                            src="${prod.imagen}" 
-                            onerror="this.onerror=null; this.src='${IMAGEN_FALLBACK}';" 
-                            class="img-fluid w-100" 
-                            alt="${prod.nombre}" 
-                            style="height: 200px; object-fit: cover;"
-                        >
-                    </a>
-                    <div class="p-3">
-                        <span class="eyebrow text-uppercase text-muted small fw-bold">${prod.categoria}</span>
-                        <span class="badge ${prod.badgeClass || 'text-bg-success-subtle text-success border-success-subtle'} border fw-semibold">${prod.badgeText || 'Disponible'}</span>
-                        <h3 class="h5 mt-2">
-                            <a href="producto.html?id=${prod.id}" class="text-dark text-decoration-none hover-primary">
-                                ${prod.nombre}
-                            </a>
-                        </h3>
-                        <p class="text-secondary small text-truncate-2">${prod.descripcion}</p>
-                    </div>
-                </div>
-                <div class="p-3 pt-0 d-flex justify-content-between align-items-center gap-2">
-                    <strong class="fs-6 text-nowrap">$ ${Number(prod.precio).toLocaleString('es-UY')}</strong>
-                    <div class="d-flex gap-1">
-                        <a href="producto.html?id=${prod.id}" class="btn btn-sm btn-outline-secondary rounded-pill px-2" title="Ver detalle">
-                            Ver detalle
-                        </a>
-                        <button data-id="${prod.id}" class="btn btn-sm btn-agregar-cart text-white rounded-pill px-2" style="background-color: #146c43; border-color: #146c43;">
-                            Agregar
-                        </button>
-                    </div>
-                </div>
-            </article>
-        </div>
-    `).join('');
+    contenedor.innerHTML = lista.map(prod => {
+        const stockNum = parseInt(prod.stock, 10) || 0;
+        const disponible = prod.disponibilidad !== false && stockNum > 0;
 
-    // Event listeners para agregar directo al carrito
+        let badgeClass = prod.badgeClass || 'text-bg-success-subtle text-success border-success-subtle';
+        let badgeText = prod.badgeText || `Stock: ${stockNum} un.`;
+
+        if (!disponible) {
+            badgeClass = 'text-bg-danger-subtle text-danger border-danger-subtle';
+            badgeText = 'Agotado';
+        } else if (stockNum <= 3) {
+            badgeClass = 'text-bg-warning-subtle text-warning-emphasis border-warning-subtle';
+            badgeText = `¡Últimas ${stockNum} un.!`;
+        }
+
+        return `
+            <div class="col-md-6 col-xl-3">
+                <article class="placeholder-product border rounded-3 overflow-hidden bg-white shadow-sm h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <a href="producto.html?id=${prod.id}" class="d-block text-decoration-none">
+                            <img 
+                                src="${prod.imagen}" 
+                                onerror="this.onerror=null; this.src='${IMAGEN_FALLBACK}';" 
+                                class="img-fluid w-100" 
+                                alt="${prod.nombre}" 
+                                style="height: 200px; object-fit: cover;"
+                            >
+                        </a>
+                        <div class="p-3">
+                            <span class="eyebrow text-uppercase text-muted small fw-bold">${prod.categoria}</span>
+                            <span class="badge ${badgeClass} border fw-semibold">${badgeText}</span>
+                            <h3 class="h5 mt-2">
+                                <a href="producto.html?id=${prod.id}" class="text-dark text-decoration-none hover-primary">
+                                    ${prod.nombre}
+                                </a>
+                            </h3>
+                            <p class="text-secondary small text-truncate-2">${prod.descripcion}</p>
+                        </div>
+                    </div>
+                    <div class="p-3 pt-0 d-flex justify-content-between align-items-center gap-2">
+                        <strong class="fs-6 text-nowrap">$ ${Number(prod.precio).toLocaleString('es-UY')}</strong>
+                        <div class="d-flex gap-1">
+                            <a href="producto.html?id=${prod.id}" class="btn btn-sm btn-outline-secondary rounded-pill px-2" title="Ver detalle">
+                                Ver detalle
+                            </a>
+                            <button 
+                                data-id="${prod.id}" 
+                                class="btn btn-sm btn-agregar-cart text-white rounded-pill px-2 ${!disponible ? 'disabled' : ''}" 
+                                ${!disponible ? 'disabled' : ''}
+                                style="background-color: #146c43; border-color: #146c43;"
+                            >
+                                ${disponible ? 'Agregar' : 'Sin Stock'}
+                            </button>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        `;
+    }).join('');
+
+    // Event listeners asociados a la función global unificada de validación de stock
     document.querySelectorAll('.btn-agregar-cart').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const id = String(e.currentTarget.dataset.id);
             const productoAgregado = productos.find(p => String(p.id) === id);
+            
             if (productoAgregado) {
-                agregarAlCarrito(productoAgregado);
+                agregarProductoAlCarritoGlobal(productoAgregado, 1);
             }
         });
     });
-}
-
-function agregarAlCarrito(producto) {
-    let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
-    const index = carrito.findIndex(item => String(item.id) === String(producto.id));
-
-    if (index !== -1) {
-        carrito[index].cantidad = (carrito[index].cantidad || 1) + 1;
-    } else {
-        carrito.push({ ...producto, cantidad: 1 });
-    }
-
-    localStorage.setItem('carrito', JSON.stringify(carrito));
-    actualizarBadgeCarrito();
-    mostrarToast(`"${producto.nombre}" fue agregado al carrito.`);
 }
 
 function aplicarFiltros() {
@@ -259,6 +296,7 @@ function aplicarFiltros() {
 
 document.addEventListener('DOMContentLoaded', () => {
     renderizarProductos(productos);
+    sincronizarCatalogoConFirestore();
 
     document.getElementById('input-busqueda')?.addEventListener('input', aplicarFiltros);
     document.getElementById('select-categoria')?.addEventListener('change', aplicarFiltros);

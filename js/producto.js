@@ -271,10 +271,10 @@ function renderizarDetalleProducto(prod) {
     if (descripcionEl) descripcionEl.textContent = prod.descripcion || 'Sin descripción disponible.';
 
     // Stock y disponibilidad
+    const stockNum = parseInt(prod.stock, 10) || 0;
+    const disponible = prod.disponibilidad !== false && stockNum > 0;
+
     if (stockEl) {
-        const stockNum = parseInt(prod.stock) || 0;
-        const disponible = prod.disponibilidad !== false && stockNum > 0;
-        
         if (disponible) {
             stockEl.className = 'badge text-bg-success-subtle text-success border border-success-subtle fs-6';
             stockEl.textContent = `En stock: ${stockNum} un.`;
@@ -305,27 +305,47 @@ function renderizarDetalleProducto(prod) {
     const inputCantidad = document.getElementById('input-cantidad-detalle');
 
     if (btnAgregar) {
+        // Deshabilitar botón si el stock es 0
+        if (!disponible) {
+            btnAgregar.classList.add('disabled');
+            btnAgregar.setAttribute('disabled', 'disabled');
+        } else {
+            btnAgregar.classList.remove('disabled');
+            btnAgregar.removeAttribute('disabled');
+        }
+
         btnAgregar.onclick = () => {
-            const stockNum = parseInt(prod.stock) || 0;
-            if (prod.disponibilidad === false || stockNum <= 0) {
-                mostrarToast('El producto se encuentra agotado.', true);
+            const currentStock = parseInt(prod.stock, 10) || 0;
+            
+            // 1. Avisar inmediatamente si el producto está en stock 0
+            if (prod.disponibilidad === false || currentStock <= 0) {
+                mostrarToast('No hay stock disponible para este artículo.', 'error');
                 return;
             }
 
-            let cantidad = parseInt(inputCantidad?.value || 1);
-            if (isNaN(cantidad) || cantidad < 1) cantidad = 1;
+            let cantidadDeseada = parseInt(inputCantidad?.value || 1, 10);
+            if (isNaN(cantidadDeseada) || cantidadDeseada < 1) cantidadDeseada = 1;
 
-            if (cantidad > stockNum) {
-                mostrarToast(`No hay suficiente stock. Máximo disponible: ${stockNum}`, true);
-                return;
-            }
-
-            // Agregar al localStorage
-            let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+            // 2. Verificar lo que ya se encuentra guardado en el carrito
+            const carrito = JSON.parse(localStorage.getItem('carrito')) || [];
             const index = carrito.findIndex(item => String(item.id) === String(prod.id));
+            const cantidadEnCarrito = index !== -1 ? (carrito[index].cantidad || 0) : 0;
+            const cantidadTotalSolicitada = cantidadEnCarrito + cantidadDeseada;
 
+            // 3. Bloquear si supera el límite de stock real
+            if (cantidadTotalSolicitada > currentStock) {
+                const disponibleRestante = Math.max(0, currentStock - cantidadEnCarrito);
+                if (disponibleRestante === 0) {
+                    mostrarToast(`Ya agregaste todo el stock disponible (${currentStock} un.) al carrito.`, 'error');
+                } else {
+                    mostrarToast(`Solo puedes agregar ${disponibleRestante} un. más. Stock total: ${currentStock} un.`, 'error');
+                }
+                return;
+            }
+
+            // 4. Agregar o actualizar en el almacenamiento local
             if (index !== -1) {
-                carrito[index].cantidad = (carrito[index].cantidad || 1) + cantidad;
+                carrito[index].cantidad = cantidadTotalSolicitada;
             } else {
                 carrito.push({
                     id: String(prod.id),
@@ -333,14 +353,67 @@ function renderizarDetalleProducto(prod) {
                     categoria: prod.categoria,
                     precio: parseFloat(prod.precio),
                     imagen: prod.imagen || (Array.isArray(prod.imagenes) ? prod.imagenes[0] : IMAGEN_FALLBACK),
-                    cantidad: cantidad
+                    cantidad: cantidadDeseada
                 });
             }
 
             localStorage.setItem('carrito', JSON.stringify(carrito));
             actualizarBadgeCarrito();
-            mostrarToast(`"${prod.nombre}" (${cantidad} un.) se agregó al carrito.`);
+            mostrarToast(`"${prod.nombre}" (${cantidadDeseada} un.) se agregó al carrito.`);
         };
+    }
+}
+
+/**
+ * Descuenta el stock en Firestore y en la caché local tras confirmar una compra.
+ * Llama a esta función al procesar el checkout con los items comprados.
+ */
+export async function descontarStockTrasCompra(itemsComprados) {
+    if (!Array.isArray(itemsComprados) || itemsComprados.length === 0) return;
+
+    // 1. Descuento en Firestore
+    try {
+        const firebaseModule = await import('./firebase/config.js');
+        const firestoreModule = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+
+        if (firebaseModule.db) {
+            for (const item of itemsComprados) {
+                const docRef = firestoreModule.doc(firebaseModule.db, 'productos', String(item.id));
+                const docSnap = await firestoreModule.getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const stockActual = parseInt(docSnap.data().stock, 10) || 0;
+                    const nuevoStock = Math.max(0, stockActual - (item.cantidad || 1));
+                    
+                    await firestoreModule.updateDoc(docRef, {
+                        stock: nuevoStock,
+                        disponibilidad: nuevoStock > 0
+                    });
+                }
+            }
+        }
+    } catch (e) {
+        console.warn("Fallo al actualizar stock en Firestore, aplicando descuento local:", e);
+    }
+
+    // 2. Descuento en catálogo local
+    itemsComprados.forEach(item => {
+        const prodLocal = productosLocales.find(p => String(p.id) === String(item.id));
+        if (prodLocal) {
+            const stockActual = parseInt(prodLocal.stock, 10) || 0;
+            prodLocal.stock = Math.max(0, stockActual - (item.cantidad || 1));
+            prodLocal.disponibilidad = prodLocal.stock > 0;
+        }
+    });
+
+    // 3. Re-renderizar si el producto activo en pantalla fue el modificado
+    if (productoActual) {
+        const itemModificado = itemsComprados.find(i => String(i.id) === String(productoActual.id));
+        if (itemModificado) {
+            productoActual.stock = Math.max(0, (parseInt(productoActual.stock, 10) || 0) - (itemModificado.cantidad || 1));
+            productoActual.disponibilidad = productoActual.stock > 0;
+            renderizarDetalleProducto(productoActual);
+        }
     }
 }
 
