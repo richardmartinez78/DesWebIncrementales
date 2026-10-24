@@ -1,30 +1,25 @@
 /**
- * js/firebase/config.js - Inicialización segura de Firebase
+ * js/firebase/config.js - Configuración central de conexión con Firebase
  */
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+// Credenciales oficiales asociadas al proyecto 'fir-authentication-20451'
 const firebaseConfig = {
-    apiKey: "TU_API_KEY",
-    authDomain: "tu-app.firebaseapp.com",
-    projectId: "tu-app-id",
-    storageBucket: "tu-app.appspot.com",
-    messagingSenderId: "123456789",
-    appId: "1:123456789:web:abcdef"
+    apiKey: "AIzaSyCgj_twZ_2oNGnQSePSahjyCapZnyMwijg",
+    authDomain: "fir-authentication-20451.firebaseapp.com",
+    projectId: "fir-authentication-20451",
+    storageBucket: "fir-authentication-20451.appspot.com",
+    messagingSenderId: "179675001258",
+    appId: "1:179675001258:web:abcdef1234567890" // <--- Reemplaza esta cadena con el appId exacto de tu consola
 };
 
-let app = null;
-let auth = null;
-let db = null;
+// Inicializar la aplicación de Firebase
+const app = initializeApp(firebaseConfig);
 
-try {
-    app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    db = getFirestore(app);
-} catch (error) {
-    console.warn("Firebase no se pudo inicializar. Operando en modo local:", error);
-}
-
-export { auth, db };
+// Exportar las instancias de Autenticación y Base de Datos
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+export { app };

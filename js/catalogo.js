@@ -5,6 +5,9 @@
 
 import { actualizarBadgeCarrito, mostrarToast, agregarProductoAlCarritoGlobal } from './base.js';
 
+// SVG Fallback en formato Data URI (Garantiza carga offline y evita errores de SSL/CORS)
+const IMAGEN_FALLBACK = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect width='100%25' height='100%25' fill='%23146c43'/%3E%3Ctext x='50%25' y='50%25' font-family='sans-serif' font-size='24' fill='%23ffffff' text-anchor='middle' dy='.3em'%3EDom%C3%B3tica Hogar%3E%3C/text%3E%3C/svg%3E";
+
 const productosIniciales = [
     {
         id: '1',
@@ -153,7 +156,6 @@ const productosIniciales = [
 ];
 
 let productos = [...productosIniciales];
-const IMAGEN_FALLBACK = 'https://placehold.co/600x400/146c43/ffffff?text=Dom%C3%B3tica+Hogar';
 
 /**
  * Carga opcional desde Firestore para mantener stock sincronizado
@@ -168,7 +170,7 @@ async function sincronizarCatalogoConFirestore() {
             if (!querySnapshot.empty) {
                 const productosFirestore = [];
                 querySnapshot.forEach(doc => {
-                    productosFirestore.push({ id: doc.id, ...doc.data() });
+                    productosFirestore.push({ id: String(doc.id), ...doc.data() });
                 });
 
                 // Reemplazar o actualizar los items locales con datos remotos
@@ -213,32 +215,37 @@ function renderizarProductos(lista) {
             badgeText = `¡Últimas ${stockNum} un.!`;
         }
 
+        // Búsqueda flexible de campos de imagen y fallback seguro
+        const urlImg = prod.imagen || prod.imagenUrl || prod.img || prod.url || prod.foto || IMAGEN_FALLBACK;
+
         return `
             <div class="col-md-6 col-xl-3">
                 <article class="placeholder-product border rounded-3 overflow-hidden bg-white shadow-sm h-100 d-flex flex-column justify-content-between">
                     <div>
                         <a href="producto.html?id=${prod.id}" class="d-block text-decoration-none">
                             <img 
-                                src="${prod.imagen}" 
+                                src="${urlImg}" 
+                                crossorigin="anonymous"
+                                loading="eager"
                                 onerror="this.onerror=null; this.src='${IMAGEN_FALLBACK}';" 
                                 class="img-fluid w-100" 
-                                alt="${prod.nombre}" 
+                                alt="${prod.nombre || 'Producto'}" 
                                 style="height: 200px; object-fit: cover;"
                             >
                         </a>
                         <div class="p-3">
-                            <span class="eyebrow text-uppercase text-muted small fw-bold">${prod.categoria}</span>
+                            <span class="eyebrow text-uppercase text-muted small fw-bold">${prod.categoria || 'Domótica'}</span>
                             <span class="badge ${badgeClass} border fw-semibold">${badgeText}</span>
                             <h3 class="h5 mt-2">
                                 <a href="producto.html?id=${prod.id}" class="text-dark text-decoration-none hover-primary">
-                                    ${prod.nombre}
+                                    ${prod.nombre || 'Sin nombre'}
                                 </a>
                             </h3>
-                            <p class="text-secondary small text-truncate-2">${prod.descripcion}</p>
+                            <p class="text-secondary small text-truncate-2">${prod.descripcion || ''}</p>
                         </div>
                     </div>
                     <div class="p-3 pt-0 d-flex justify-content-between align-items-center gap-2">
-                        <strong class="fs-6 text-nowrap">$ ${Number(prod.precio).toLocaleString('es-UY')}</strong>
+                        <strong class="fs-6 text-nowrap">$ ${Number(prod.precio || 0).toLocaleString('es-UY')}</strong>
                         <div class="d-flex gap-1">
                             <a href="producto.html?id=${prod.id}" class="btn btn-sm btn-outline-secondary rounded-pill px-2" title="Ver detalle">
                                 Ver detalle
@@ -277,9 +284,9 @@ function aplicarFiltros() {
     const ordenSeleccionado = document.getElementById('select-orden')?.value || 'defecto';
 
     let resultado = productos.filter(prod => {
-        const coincideTexto = prod.nombre.toLowerCase().includes(textoBusqueda) || 
-                               prod.descripcion.toLowerCase().includes(textoBusqueda);
-        const coincideCat = !categoriaSeleccionada || prod.categoria.toLowerCase() === categoriaSeleccionada.toLowerCase();
+        const coincideTexto = (prod.nombre || '').toLowerCase().includes(textoBusqueda) || 
+                               (prod.descripcion || '').toLowerCase().includes(textoBusqueda);
+        const coincideCat = !categoriaSeleccionada || (prod.categoria || '').toLowerCase() === categoriaSeleccionada.toLowerCase();
         return coincideTexto && coincideCat;
     });
 
@@ -288,7 +295,7 @@ function aplicarFiltros() {
     } else if (ordenSeleccionado === 'precio-desc') {
         resultado.sort((a, b) => b.precio - a.precio);
     } else if (ordenSeleccionado === 'nombre') {
-        resultado.sort((a, b) => a.nombre.localeCompare(b.nombre));
+        resultado.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
     }
 
     renderizarProductos(resultado);

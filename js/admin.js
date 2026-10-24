@@ -7,6 +7,12 @@ import { actualizarAuthNav, mostrarToast, obtenerSesion } from './base.js';
 import { PRODUCTOS_MOCK } from './productos.js';
 
 // =====================================================================
+// 🎨 PLACEHOLDERS DE IMAGEN SEGUROS (DATA URI SVG)
+// =====================================================================
+const PLACEHOLDER_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='45' height='45' viewBox='0 0 45 45'%3E%3Crect width='100%25' height='100%25' fill='%23f8f9fa'/%3E%3Ctext x='50%25' y='50%25' font-family='sans-serif' font-size='10' fill='%236c757d' text-anchor='middle' dy='.3em'%3ESin Img%3E%3C/text%3E%3C/svg%3E";
+const ERROR_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='45' height='45' viewBox='0 0 45 45'%3E%3Crect width='100%25' height='100%25' fill='%23fff5f5'/%3E%3Ctext x='50%25' y='50%25' font-family='sans-serif' font-size='10' fill='%23dc3545' text-anchor='middle' dy='.3em'%3EError%3E%3C/text%3E%3C/svg%3E";
+
+// =====================================================================
 // 🛡️ GUARDIÁN DE SEGURIDAD (PRIMERA LÍNEA DE EJECUCIÓN)
 // =====================================================================
 const _sesionActiva = obtenerSesion();
@@ -19,9 +25,7 @@ const _esAdmin = _sesionActiva && (
 );
 
 if (!_esAdmin) {
-    // Expulsa al cliente inmediatamente al inicio
     window.location.replace('index.html');
-    // Detiene por completo la ejecución de cualquier código debajo de esta línea
     throw new Error("🚨 ACCESO DENEGADO: Intento de acceso no autorizado al panel de administración.");
 }
 // =====================================================================
@@ -29,18 +33,15 @@ if (!_esAdmin) {
 let modalBS = null;
 
 /**
- * Valida si el usuario actual tiene permisos de Administrador (Doble validación para funciones)
+ * Valida si el usuario actual tiene permisos de Administrador
  */
 export function esAdministrador(usuario) {
     if (!usuario) return false;
-    
-    // Rol asignado explícitamente o coincidencia con cuenta admin
     const esRolAdmin = usuario.rol === 'admin';
     const esEmailAdmin = usuario.email && (
         usuario.email.toLowerCase().includes('admin') || 
         usuario.email.toLowerCase() === 'admin@domotica.com'
     );
-
     return esRolAdmin || esEmailAdmin;
 }
 
@@ -54,14 +55,9 @@ export async function renderizarPanelAdmin() {
     actualizarAuthNav();
     const usuario = obtenerSesion();
 
-    // 1. VALIDACIÓN DE ROL DE ADMINISTRADOR (Redundancia de seguridad)
-    if (!usuario || !esAdministrador(usuario)) {
-        return; // El guardián ya se encargó de expulsarlo, pero mantenemos esta capa extra
-    }
+    if (!usuario || !esAdministrador(usuario)) return;
 
-    // 2. PANEL ADMINISTRATIVO PRINCIPAL (USUARIO ADMIN AUTORIZADO)
     contenedor.innerHTML = `
-        <!-- BANNER DE MÓDULO EN DESARROLLO -->
         <div class="alert alert-info border-info-subtle shadow-sm mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
             <div class="d-flex align-items-center gap-2">
                 <span class="badge bg-info text-dark fw-bold">Sprint Progresivo</span>
@@ -80,7 +76,6 @@ export async function renderizarPanelAdmin() {
             </button>
         </div>
 
-        <!-- PESTAÑAS DE CONTROL -->
         <ul class="nav nav-tabs mb-4" id="adminTabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active fw-bold text-success" id="tab-productos-btn" data-bs-toggle="tab" data-bs-target="#tab-productos" type="button" role="tab">
@@ -95,7 +90,6 @@ export async function renderizarPanelAdmin() {
         </ul>
 
         <div class="tab-content" id="adminTabsContent">
-            <!-- PESTAÑA 1: PRODUCTOS -->
             <div class="tab-pane fade show active" id="tab-productos" role="tabpanel">
                 <div class="card border-0 shadow-sm p-3 bg-white">
                     <div class="table-responsive">
@@ -121,7 +115,6 @@ export async function renderizarPanelAdmin() {
                 </div>
             </div>
 
-            <!-- PESTAÑA 2: PEDIDOS GENERALES -->
             <div class="tab-pane fade" id="tab-pedidos" role="tabpanel">
                 <div class="card border-0 shadow-sm p-3 bg-white">
                     <div class="table-responsive">
@@ -148,15 +141,12 @@ export async function renderizarPanelAdmin() {
         </div>
     `;
 
-    // Inicializar Modal de Bootstrap
     const modalEl = document.getElementById('modalProducto');
-    if (modalEl) modalBS = new bootstrap.Modal(modalEl);
+    if (modalEl && window.bootstrap) modalBS = new bootstrap.Modal(modalEl);
 
-    // Evento de Alta de Producto
     document.getElementById('btn-nuevo-producto')?.addEventListener('click', prepararModalAlta);
     document.getElementById('form-admin-producto')?.addEventListener('submit', guardarProducto);
 
-    // Cargar listas
     cargarProductosAdmin();
     cargarPedidosAdmin();
 }
@@ -192,18 +182,25 @@ async function cargarProductosAdmin() {
     tbody.innerHTML = productos.map(prod => {
         const stockActual = Math.max(0, parseInt(prod.stock, 10) || 0);
         const estaDisponible = prod.disponibilidad !== false && stockActual > 0;
+        
+        // Búsqueda flexible de campos de imagen compatibles con cualquier esquema de Firestore
+        const urlImg = prod.imagen || prod.imagenUrl || prod.img || prod.url || prod.foto || PLACEHOLDER_IMG;
 
         return `
             <tr>
                 <td style="width: 60px;">
-                    <img src="${prod.imagen}" alt="${prod.nombre}" class="rounded" style="width: 45px; height: 45px; object-fit: cover;">
+                    <img src="${urlImg}" 
+                         alt="${prod.nombre || 'Producto'}" 
+                         class="rounded border" 
+                         style="width: 45px; height: 45px; object-fit: cover;"
+                         onerror="this.onerror=null; this.src='${ERROR_IMG}';">
                 </td>
                 <td>
-                    <strong class="d-block">${prod.nombre}</strong>
+                    <strong class="d-block">${prod.nombre || 'Sin Nombre'}</strong>
                     <span class="text-muted extra-small">ID: ${prod.id}</span>
                 </td>
                 <td><span class="badge text-bg-light border">${prod.categoria || 'Domótica'}</span></td>
-                <span class="fw-bold text-success">$ ${Number(prod.precio || 0).toLocaleString('es-UY')}</span>
+                <td><span class="fw-bold text-success">$ ${Number(prod.precio || 0).toLocaleString('es-UY')}</span></td>
                 <td style="width: 110px;">
                     <input type="number" class="form-control form-control-sm text-center input-stock-rapido" 
                            data-id="${prod.id}" value="${stockActual}" min="0" style="width: 75px;">
@@ -222,7 +219,6 @@ async function cargarProductosAdmin() {
         `;
     }).join('');
 
-    // Asignación de Eventos Rápidos
     tbody.querySelectorAll('.input-stock-rapido').forEach(input => {
         input.addEventListener('change', (e) => actualizarStockRapido(e.target.dataset.id, e.target.value));
     });
@@ -249,11 +245,9 @@ async function cargarPedidosAdmin() {
 
     let pedidos = [];
 
-    // Pedidos en LocalStorage
     const pedidosLocales = JSON.parse(localStorage.getItem('pedidos_locales')) || [];
     pedidos = [...pedidosLocales];
 
-    // Pedidos en Firestore
     try {
         const firebaseModule = await import('./firebase/config.js');
         if (firebaseModule.db) {
@@ -293,9 +287,6 @@ async function cargarPedidosAdmin() {
     }).join('');
 }
 
-/**
- * Prepara el modal para alta de producto nuevo
- */
 function prepararModalAlta() {
     document.getElementById('modalProductoLabel').textContent = 'Alta de Nuevo Producto';
     document.getElementById('form-admin-producto').reset();
@@ -303,9 +294,6 @@ function prepararModalAlta() {
     document.getElementById('prod-form-disponible').checked = true;
 }
 
-/**
- * Carga los datos de un producto existente en el modal para su edición
- */
 function abrirEdicionProducto(id, listaProductos) {
     const prod = listaProductos.find(p => String(p.id) === String(id));
     if (!prod) return;
@@ -317,15 +305,12 @@ function abrirEdicionProducto(id, listaProductos) {
     document.getElementById('prod-form-precio').value = prod.precio || 0;
     document.getElementById('prod-form-stock').value = Math.max(0, parseInt(prod.stock, 10) || 0);
     document.getElementById('prod-form-disponible').checked = prod.disponibilidad !== false;
-    document.getElementById('prod-form-imagen').value = prod.imagen || '';
+    document.getElementById('prod-form-imagen').value = prod.imagen || prod.imagenUrl || prod.img || prod.url || prod.foto || '';
     document.getElementById('prod-form-descripcion').value = prod.descripcion || '';
 
     if (modalBS) modalBS.show();
 }
 
-/**
- * Guarda o actualiza un producto en Firestore / LocalStorage
- */
 async function guardarProducto(e) {
     e.preventDefault();
 
@@ -360,11 +345,9 @@ async function guardarProducto(e) {
             const { doc, setDoc, addDoc, collection } = firestoreModule;
 
             if (id) {
-                // Modificación de producto existente
                 await setDoc(doc(firebaseModule.db, 'productos', String(id)), datosProducto, { merge: true });
                 mostrarToast(`Producto "${nombre}" actualizado con éxito.`);
             } else {
-                // Alta de nuevo producto
                 await addDoc(collection(firebaseModule.db, 'productos'), datosProducto);
                 mostrarToast(`Producto "${nombre}" registrado con éxito.`);
             }
@@ -378,9 +361,6 @@ async function guardarProducto(e) {
     cargarProductosAdmin();
 }
 
-/**
- * Actualización rápida de stock sin permitir valores negativos
- */
 async function actualizarStockRapido(id, nuevoStock) {
     const stockLimpio = Math.max(0, parseInt(nuevoStock, 10) || 0);
 
@@ -401,9 +381,6 @@ async function actualizarStockRapido(id, nuevoStock) {
     }
 }
 
-/**
- * Conmutación rápida de disponibilidad
- */
 async function actualizarDisponibilidadRapida(id, estaDisponible) {
     try {
         const firebaseModule = await import('./firebase/config.js');
@@ -422,9 +399,6 @@ async function actualizarDisponibilidadRapida(id, estaDisponible) {
     }
 }
 
-/**
- * Eliminación o baja de producto
- */
 async function darBajaProducto(id) {
     if (!confirm(`¿Estás seguro/a de eliminar o dar de baja el producto #${id}?`)) return;
 

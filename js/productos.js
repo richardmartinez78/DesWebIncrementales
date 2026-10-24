@@ -30,7 +30,7 @@ function limpiarPrecio(val) {
 }
 
 /**
- * Obtiene la lista de productos con fallback ultrarrápido (timeout 1.2s en Firestore)
+ * Obtiene la lista de productos conectando con Firestore
  */
 export async function obtenerProductos() {
     if (!db) return PRODUCTOS_MOCK;
@@ -98,9 +98,6 @@ export function crearTarjetaProductoHTML(prod) {
     `;
 }
 
-/**
- * Renderiza los productos destacados en la página de inicio (index.html)
- */
 export async function renderizarInicio() {
     const contenedor = document.getElementById('productos-destacados') || 
                        document.getElementById('grilla-inicio') || 
@@ -108,7 +105,7 @@ export async function renderizarInicio() {
     if (!contenedor) return;
 
     const productos = await obtenerProductos();
-    const destacados = productos.slice(0, 4); // Primeros 4 productos destacados
+    const destacados = productos.slice(0, 4);
 
     contenedor.innerHTML = '';
     destacados.forEach(prod => {
@@ -128,9 +125,6 @@ export async function renderizarInicio() {
     };
 }
 
-/**
- * Renderiza el catálogo completo de productos (catalogo.html)
- */
 export async function renderizarCatalogo() {
     const contenedor = document.getElementById('grilla-productos') || document.getElementById('catalogo-container');
     if (!contenedor) return;
@@ -155,9 +149,6 @@ export async function renderizarCatalogo() {
     };
 }
 
-/**
- * Renderiza el detalle de producto e integra las opiniones (producto.html)
- */
 export async function renderizarDetalleProducto() {
     const contenedor = document.getElementById('contenedor-producto');
     if (!contenedor) return;
@@ -264,9 +255,6 @@ export async function renderizarDetalleProducto() {
     renderizarSeccionOpiniones(producto.id);
 }
 
-/**
- * Agrega un producto al carrito respetando el stock disponible
- */
 export function agregarAlCarrito(producto, cantidad = 1) {
     let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
     const stockMax = Math.max(0, parseInt(producto.stock, 10) || 0);
@@ -312,9 +300,6 @@ export function agregarAlCarrito(producto, cantidad = 1) {
     mostrarToast(`¡Se agregaron ${cantidad} unidad(es) de "${producto.nombre}" al carrito!`);
 }
 
-/**
- * Renderiza las opiniones verificadas del producto
- */
 export async function renderizarSeccionOpiniones(productoId) {
     const contenedor = document.getElementById('contenedor-opiniones');
     if (!contenedor) return;
@@ -413,9 +398,6 @@ export async function renderizarSeccionOpiniones(productoId) {
     }
 }
 
-/**
- * Detección automática de página e inicialización
- */
 function iniciarApp() {
     actualizarBadgeCarrito();
     const pageAttr = document.body.dataset.page;

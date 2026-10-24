@@ -1,5 +1,5 @@
 /**
- * js/perfil.js - Gestión resiliente de perfil y autenticación RBAC
+ * js/perfil.js - Gestión estricta de perfil y autenticación RBAC con Firebase
  */
 
 import { actualizarAuthNav, mostrarToast, obtenerSesion } from './base.js';
@@ -21,7 +21,7 @@ export async function renderizarPerfil() {
                                 <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
                             </svg>
                         </div>
-                        <h2 class="h5 fw-bold mb-1">${usuario.nombre || 'Cliente Domótica'}</h2>
+                        <h2 class="h5 fw-bold mb-1">${usuario.nombre || 'Usuario Domótica'}</h2>
                         <p class="text-muted small mb-1">${usuario.email}</p>
                         <p class="text-success small fw-bold mb-3 text-uppercase">Rol: ${usuario.rol || 'cliente'}</p>
                         
@@ -51,7 +51,7 @@ export async function renderizarPerfil() {
                 const { signOut } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
                 if (auth) await signOut(auth);
             } catch (e) {
-                console.warn("Cierre de sesión ejecutado únicamente en almacenamiento local.");
+                console.warn("Cierre de sesión local realizado.");
             }
             localStorage.removeItem('usuario');
             actualizarAuthNav();
@@ -141,48 +141,62 @@ async function manejarLogin(e) {
         btnSubmit.disabled = true;
         btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Ingresando...';
 
+        const { auth, db } = await import('./firebase/config.js');
+        const { signInWithEmailAndPassword } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
+        const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+
+        if (!auth || !db) {
+            throw new Error("No se pudo conectar con los servicios de Firebase.");
+        }
+
+        // 1. Autenticar credenciales
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        // 2. Consultar rol en Firestore
         let rolUsuario = 'cliente';
         let nombreUsuario = email.split('@')[0];
-        let uidUsuario = `user-${Date.now()}`;
 
-        try {
-            const { auth, db } = await import('./firebase/config.js');
-            const { signInWithEmailAndPassword } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
-            const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+        const docRef = doc(db, 'usuarios', user.uid);
+        const docSnap = await getDoc(docRef);
 
-            if (auth && db) {
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-                uidUsuario = user.uid;
-
-                const docRef = doc(db, 'usuarios', user.uid);
-                const docSnap = await getDoc(docRef);
-
-                if (docSnap.exists()) {
-                    rolUsuario = docSnap.data().rol || 'cliente';
-                    nombreUsuario = docSnap.data().nombre || nombreUsuario;
-                }
-            }
-        } catch (errFirebase) {
-            console.warn("Fallo de conexión remota en inicio de sesión. Aplicando fallback local.");
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            rolUsuario = data.rol || 'cliente';
+            nombreUsuario = data.nombre || nombreUsuario;
         }
 
         const datosUsuario = {
-            uid: uidUsuario,
-            email: email,
+            uid: user.uid,
+            email: user.email,
             nombre: nombreUsuario,
             rol: rolUsuario
         };
 
+        // 3. Guardar sesión real
         localStorage.setItem('usuario', JSON.stringify(datosUsuario));
         actualizarAuthNav();
         mostrarToast(`¡Bienvenido/a, ${datosUsuario.nombre}!`);
         renderizarPerfil();
 
     } catch (error) {
-        mostrarToast('Error al procesar el inicio de sesión.', 'error');
-        btnSubmit.disabled = false;
-        btnSubmit.innerHTML = 'Ingresar';
+        console.error("❌ Error de Autenticación:", error.code, error.message);
+        
+        let mensajeError = "Error al iniciar sesión.";
+        if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+            mensajeError = "Correo o contraseña incorrectos.";
+        } else if (error.code === 'auth/too-many-requests') {
+            mensajeError = "Demasiados intentos fallidos. Intenta más tarde.";
+        } else if (error.message) {
+            mensajeError = error.message;
+        }
+
+        mostrarToast(mensajeError, 'error');
+    } finally {
+        if (btnSubmit) {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = 'Ingresar';
+        }
     }
 }
 
@@ -208,31 +222,29 @@ async function manejarRegistro(e) {
         btnSubmit.disabled = true;
         btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Creando cuenta...';
 
-        let uidUsuario = `user-${Date.now()}`;
+        const { auth, db } = await import('./firebase/config.js');
+        const { createUserWithEmailAndPassword } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
+        const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
 
-        try {
-            const { auth, db } = await import('./firebase/config.js');
-            const { createUserWithEmailAndPassword } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
-            const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
-
-            if (auth && db) {
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-                uidUsuario = user.uid;
-
-                await setDoc(doc(db, 'usuarios', user.uid), {
-                    nombre: nombre,
-                    email: email,
-                    rol: 'cliente',
-                    fechaRegistro: new Date().toISOString()
-                });
-            }
-        } catch (errFirebase) {
-            console.warn("Fallo de registro remoto. Registrando únicamente en sesión local.");
+        if (!auth || !db) {
+            throw new Error("No se pudo conectar con los servicios de Firebase.");
         }
 
+        // 1. Crear usuario en Firebase Auth
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        // 2. Guardar registro con rol cliente por defecto en Firestore
+        await setDoc(doc(db, 'usuarios', user.uid), {
+            uid: user.uid,
+            nombre: nombre,
+            email: email,
+            rol: 'cliente',
+            fechaRegistro: new Date().toISOString()
+        });
+
         const datosUsuario = {
-            uid: uidUsuario,
+            uid: user.uid,
             email: email,
             nombre: nombre,
             rol: 'cliente'
@@ -244,9 +256,21 @@ async function manejarRegistro(e) {
         renderizarPerfil();
 
     } catch (error) {
-        mostrarToast('Error al registrar la cuenta.', 'error');
-        btnSubmit.disabled = false;
-        btnSubmit.innerHTML = 'Crear Cuenta';
+        console.error("❌ Error de Registro:", error.code, error.message);
+
+        let mensajeError = "Error al registrar la cuenta.";
+        if (error.code === 'auth/email-already-in-use') {
+            mensajeError = "El correo electrónico ya está registrado.";
+        } else if (error.code === 'auth/weak-password') {
+            mensajeError = "La contraseña debe tener al menos 6 caracteres.";
+        }
+
+        mostrarToast(mensajeError, 'error');
+    } finally {
+        if (btnSubmit) {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = 'Crear Cuenta';
+        }
     }
 }
 
@@ -276,7 +300,7 @@ async function cargarHistorialPedidos(usuario) {
             const q = query(collection(db, 'pedidos'), where('usuario.email', '==', usuario.email));
             
             const promesaFirestore = getDocs(q);
-            const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 1200));
+            const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 1500));
             const snap = await Promise.race([promesaFirestore, timeout]);
 
             snap.forEach(docSnap => {
@@ -287,7 +311,7 @@ async function cargarHistorialPedidos(usuario) {
             });
         }
     } catch (e) {
-        console.warn("Carga de pedidos resuelta mediante almacenamiento local.");
+        console.warn("Consulta remota de pedidos no disponible, cargando historial local.");
     }
 
     if (pedidos.length === 0) {
