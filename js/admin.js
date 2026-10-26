@@ -317,6 +317,9 @@ function abrirEdicionProducto(id, listaProductos) {
 async function guardarProducto(e) {
     e.preventDefault();
 
+    const btnSubmit = document.getElementById('btn-enviar-producto') || e.target.querySelector('button[type="submit"]');
+    const textoOriginal = btnSubmit ? btnSubmit.innerHTML : 'Guardar';
+
     let id = document.getElementById('prod-form-id').value.trim();
     const nombre = document.getElementById('prod-form-nombre').value.trim();
     const categoria = document.getElementById('prod-form-categoria').value;
@@ -329,6 +332,12 @@ async function guardarProducto(e) {
     if (!nombre || !imagen || !descripcion) {
         mostrarToast('⚠️ Por favor completa todos los campos requeridos.', true);
         return;
+    }
+
+    // 🔒 Deshabilitar botón y mostrar spinner/indicador de carga
+    if (btnSubmit) {
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = `<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Guardando...`;
     }
 
     try {
@@ -358,7 +367,7 @@ async function guardarProducto(e) {
                 stock,
                 disponibilidad: disponibilidad && stock > 0,
                 imagen,
-                imagenUrl: imagen, // Duplicado para retrocompatibilidad total
+                imagenUrl: imagen,
                 descripcion
             };
 
@@ -368,6 +377,12 @@ async function guardarProducto(e) {
     } catch (err) {
         console.warn("Guardando producto en almacenamiento local:", err);
         mostrarToast('Operación guardada en respaldo local.');
+    } finally {
+        // 🔓 Restaurar botón al finalizar el proceso
+        if (btnSubmit) {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = textoOriginal;
+        }
     }
 
     if (modalBS) modalBS.hide();

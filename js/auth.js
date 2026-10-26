@@ -66,6 +66,7 @@ if (formRegistro) {
 
         try {
             let usuarioSesion = null;
+            const rolPredeterminado = 'cliente'; // Todo registro público adopta el rol cliente
 
             if (auth && createUserWithEmailAndPassword) {
                 // Registro real en Firebase Auth
@@ -73,10 +74,30 @@ if (formRegistro) {
                 if (nombre && userCredential.user && updateProfile) {
                     await updateProfile(userCredential.user, { displayName: nombre });
                 }
+
+                const uid = userCredential.user.uid;
+                const nombreFinal = nombre || email.split('@')[0];
+
+                // Crear documento obligatorio en Firestore: /usuarios/{uid}
+                try {
+                    const firebaseModule = await import('./firebase/config.js');
+                    if (firebaseModule.db) {
+                        const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+                        await setDoc(doc(firebaseModule.db, 'usuarios', uid), {
+                            nombre: nombreFinal,
+                            email: email,
+                            rol: rolPredeterminado
+                        }, { merge: true });
+                    }
+                } catch (fsError) {
+                    console.warn("No se pudo escribir el perfil en Firestore:", fsError);
+                }
+
                 usuarioSesion = {
-                    uid: userCredential.user.uid,
-                    email: userCredential.user.email,
-                    nombre: nombre || email.split('@')[0]
+                    uid: uid,
+                    email: email,
+                    nombre: nombreFinal,
+                    rol: rolPredeterminado
                 };
             } else {
                 // Validación local: Verificar si el correo ya existe
@@ -93,12 +114,13 @@ if (formRegistro) {
                 usuarioSesion = {
                     uid: 'local-' + Date.now(),
                     email: email,
-                    nombre: nombre || email.split('@')[0]
+                    nombre: nombre || email.split('@')[0],
+                    rol: rolPredeterminado
                 };
             }
 
             // Guardar usuario en el registro local
-            guardarUsuarioLocal({ nombre: nombre || email.split('@')[0], email, password });
+            guardarUsuarioLocal({ nombre: nombre || email.split('@')[0], email, password, rol: rolPredeterminado });
 
             // Activar sesión actual
             localStorage.setItem('usuario', JSON.stringify(usuarioSesion));
@@ -155,10 +177,28 @@ if (formLogin) {
             if (auth && signInWithEmailAndPassword) {
                 // Intento de autenticación en Firebase
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const uid = userCredential.user.uid;
+                let rolUsuario = 'cliente';
+
+                // Consultar Firestore para recuperar el campo "rol" exacto
+                try {
+                    const firebaseModule = await import('./firebase/config.js');
+                    if (firebaseModule.db) {
+                        const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+                        const docSnap = await getDoc(doc(firebaseModule.db, 'usuarios', uid));
+                        if (docSnap.exists()) {
+                            rolUsuario = docSnap.data().rol || 'cliente';
+                        }
+                    }
+                } catch (fsError) {
+                    console.warn("No se pudo obtener el rol desde Firestore:", fsError);
+                }
+
                 usuarioSesion = {
-                    uid: userCredential.user.uid,
+                    uid: uid,
                     email: userCredential.user.email,
-                    nombre: userCredential.user.displayName || email.split('@')[0]
+                    nombre: userCredential.user.displayName || email.split('@')[0],
+                    rol: rolUsuario
                 };
             } else {
                 // Validación local: Verificar que el usuario exista y la contraseña coincida
@@ -177,7 +217,8 @@ if (formLogin) {
                 usuarioSesion = {
                     uid: 'local-' + Date.now(),
                     email: usuarioEncontrado.email,
-                    nombre: usuarioEncontrado.nombre
+                    nombre: usuarioEncontrado.nombre,
+                    rol: usuarioEncontrado.rol || 'cliente'
                 };
             }
 
