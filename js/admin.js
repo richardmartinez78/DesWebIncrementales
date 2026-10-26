@@ -179,6 +179,9 @@ async function cargarProductosAdmin() {
         productos = PRODUCTOS_MOCK;
     }
 
+    // Ordenar numéricamente por ID para mantener la correlación de catálogo
+    productos.sort((a, b) => (parseInt(a.id, 10) || 0) - (parseInt(b.id, 10) || 0));
+
     tbody.innerHTML = productos.map(prod => {
         const stockActual = Math.max(0, parseInt(prod.stock, 10) || 0);
         const estaDisponible = prod.disponibilidad !== false && stockActual > 0;
@@ -314,7 +317,7 @@ function abrirEdicionProducto(id, listaProductos) {
 async function guardarProducto(e) {
     e.preventDefault();
 
-    const id = document.getElementById('prod-form-id').value;
+    let id = document.getElementById('prod-form-id').value.trim();
     const nombre = document.getElementById('prod-form-nombre').value.trim();
     const categoria = document.getElementById('prod-form-categoria').value;
     const precio = parseFloat(document.getElementById('prod-form-precio').value) || 0;
@@ -328,29 +331,39 @@ async function guardarProducto(e) {
         return;
     }
 
-    const datosProducto = {
-        nombre,
-        categoria,
-        precio,
-        stock,
-        disponibilidad: disponibilidad && stock > 0,
-        imagen,
-        descripcion
-    };
-
     try {
         const firebaseModule = await import('./firebase/config.js');
         if (firebaseModule.db) {
             const firestoreModule = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
-            const { doc, setDoc, addDoc, collection } = firestoreModule;
+            const { doc, setDoc, collection, getDocs } = firestoreModule;
 
-            if (id) {
-                await setDoc(doc(firebaseModule.db, 'productos', String(id)), datosProducto, { merge: true });
-                mostrarToast(`Producto "${nombre}" actualizado con éxito.`);
-            } else {
-                await addDoc(collection(firebaseModule.db, 'productos'), datosProducto);
-                mostrarToast(`Producto "${nombre}" registrado con éxito.`);
+            // Si es un producto nuevo, calcular el ID numérico correlativo (11, 12, 13...)
+            if (!id) {
+                const snap = await getDocs(collection(firebaseModule.db, 'productos'));
+                let maxId = 0;
+                snap.forEach(docSnap => {
+                    const numId = parseInt(docSnap.id, 10);
+                    if (!isNaN(numId) && numId > maxId) {
+                        maxId = numId;
+                    }
+                });
+                id = String(maxId + 1);
             }
+
+            const datosProducto = {
+                id: id,
+                nombre,
+                categoria,
+                precio,
+                stock,
+                disponibilidad: disponibilidad && stock > 0,
+                imagen,
+                imagenUrl: imagen, // Duplicado para retrocompatibilidad total
+                descripcion
+            };
+
+            await setDoc(doc(firebaseModule.db, 'productos', String(id)), datosProducto, { merge: true });
+            mostrarToast(`Producto "${nombre}" (ID #${id}) guardado con éxito.`);
         }
     } catch (err) {
         console.warn("Guardando producto en almacenamiento local:", err);

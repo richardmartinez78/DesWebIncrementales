@@ -21,12 +21,32 @@ export const PRODUCTOS_MOCK = [
     { id: "10", nombre: "Sensor Inteligente de Fuga de Agua", categoria: "Protección", precio: 890, stock: 7, disponibilidad: true, descripcion: "Alarma sonora y notificación remota al detectar presencia anómala de agua en cocina o baño.", imagen: "https://m.media-amazon.com/images/I/61FeRChj4TL.jpg" }
 ];
 
+const FALLBACK_IMG = "https://images.unsplash.com/photo-1558002038-1055907df827?w=600&auto=format&fit=crop&q=80";
+
 function limpiarPrecio(val) {
     if (typeof val === 'number') return isNaN(val) ? 0 : val;
     if (!val) return 0;
     const limpio = String(val).replace(/[^0-9.,]/g, '').replace(',', '.');
     const num = parseFloat(limpio);
     return isNaN(num) ? 0 : num;
+}
+
+/**
+ * Obtiene la imagen adecuada para un producto
+ */
+function obtenerImagenProducto(prod) {
+    if (!prod) return FALLBACK_IMG;
+    if (prod.imagen) return prod.imagen;
+    if (prod.imagenUrl) return prod.imagenUrl;
+    if (prod.img) return prod.img;
+    if (prod.url) return prod.url;
+
+    const coincidenciaMock = PRODUCTOS_MOCK.find(m => 
+        String(m.id) === String(prod.id) || 
+        (m.nombre && prod.nombre && m.nombre.toLowerCase().trim() === prod.nombre.toLowerCase().trim())
+    );
+
+    return coincidenciaMock ? coincidenciaMock.imagen : FALLBACK_IMG;
 }
 
 /**
@@ -54,7 +74,13 @@ export async function obtenerProductos() {
             });
         });
 
-        return productosFirestore.length > 0 ? productosFirestore : PRODUCTOS_MOCK;
+        if (productosFirestore.length > 0) {
+            // Ordenar por ID numérico si existe
+            productosFirestore.sort((a, b) => (parseInt(a.id, 10) || 0) - (parseInt(b.id, 10) || 0));
+            return productosFirestore;
+        }
+
+        return PRODUCTOS_MOCK;
     } catch (error) {
         console.warn("Cargando catálogo local unificado:", error.message);
         return PRODUCTOS_MOCK;
@@ -67,19 +93,27 @@ export async function obtenerProductos() {
 export function crearTarjetaProductoHTML(prod) {
     const precioLimpio = limpiarPrecio(prod.precio);
     const stockMax = Math.max(0, parseInt(prod.stock, 10) || 0);
+    const urlImg = obtenerImagenProducto(prod);
+
+    const coincidenciaMock = PRODUCTOS_MOCK.find(m => String(m.id) === String(prod.id));
+    const urlOriginal = coincidenciaMock ? coincidenciaMock.imagen : FALLBACK_IMG;
 
     return `
         <article class="card h-100 shadow-sm border-0">
             <a href="producto.html?id=${prod.id}">
-                <img src="${prod.imagen}" class="card-img-top" alt="${prod.nombre}" style="height: 200px; object-fit: cover;">
+                <img src="${urlImg}" 
+                     class="card-img-top" 
+                     alt="${prod.nombre || 'Producto'}" 
+                     style="height: 200px; object-fit: cover;"
+                     onerror="this.onerror=null; this.src='${urlOriginal}';">
             </a>
             <div class="card-body d-flex flex-column justify-content-between">
                 <div>
                     <span class="eyebrow text-uppercase text-muted small fw-bold">${prod.categoria || 'Domótica'}</span>
                     <h3 class="h5 card-title mt-1">
-                        <a href="producto.html?id=${prod.id}" class="text-dark text-decoration-none">${prod.nombre}</a>
+                        <a href="producto.html?id=${prod.id}" class="text-dark text-decoration-none">${prod.nombre || 'Sin Nombre'}</a>
                     </h3>
-                    <p class="card-text text-secondary small">${prod.descripcion}</p>
+                    <p class="card-text text-secondary small">${prod.descripcion || ''}</p>
                 </div>
                 <div class="mt-3">
                     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -186,18 +220,26 @@ export async function renderizarDetalleProducto() {
 
     const precioLimpio = limpiarPrecio(producto.precio);
     const stockMax = Math.max(0, parseInt(producto.stock, 10) || 0);
+    const urlImg = obtenerImagenProducto(producto);
+
+    const coincidenciaMock = PRODUCTOS_MOCK.find(m => String(m.id) === String(producto.id));
+    const urlOriginal = coincidenciaMock ? coincidenciaMock.imagen : FALLBACK_IMG;
 
     contenedor.innerHTML = `
         <div class="row g-4 align-items-center mb-5">
             <div class="col-md-6">
                 <div class="p-3 bg-white border rounded-4 text-center shadow-sm">
-                    <img src="${producto.imagen}" class="img-fluid rounded-3" alt="${producto.nombre}" style="max-height: 380px; object-fit: cover; width: 100%;">
+                    <img src="${urlImg}" 
+                         class="img-fluid rounded-3" 
+                         alt="${producto.nombre || 'Producto'}" 
+                         style="max-height: 380px; object-fit: cover; width: 100%;"
+                         onerror="this.onerror=null; this.src='${urlOriginal}';">
                 </div>
             </div>
             <div class="col-md-6">
                 <span class="badge text-bg-success mb-2 px-3 py-2 text-uppercase">${producto.categoria || 'Domótica'}</span>
-                <h1 class="fw-bold mb-3">${producto.nombre}</h1>
-                <p class="lead text-secondary mb-4">${producto.descripcion}</p>
+                <h1 class="fw-bold mb-3">${producto.nombre || 'Sin Nombre'}</h1>
+                <p class="lead text-secondary mb-4">${producto.descripcion || ''}</p>
                 
                 <div class="p-3 bg-light rounded-3 mb-4">
                     <div class="d-flex align-items-center justify-content-between">
@@ -281,6 +323,8 @@ export function agregarAlCarrito(producto, cantidad = 1) {
         return;
     }
 
+    const urlImg = obtenerImagenProducto(producto);
+
     if (index !== -1) {
         carrito[index].cantidad = cantidadPrevia + cantidad;
         carrito[index].stock = stockMax;
@@ -289,7 +333,7 @@ export function agregarAlCarrito(producto, cantidad = 1) {
             id: String(producto.id),
             nombre: producto.nombre,
             precio: limpiarPrecio(producto.precio),
-            imagen: producto.imagen,
+            imagen: urlImg,
             cantidad: cantidad,
             stock: stockMax
         });
@@ -360,16 +404,20 @@ export async function renderizarSeccionOpiniones(productoId) {
         `;
     }
 
-    const listaHTML = resenas.map(r => `
-        <div class="border-bottom py-3">
-            <div class="d-flex justify-content-between align-items-center mb-1">
-                <strong class="small">${r.usuario?.nombre || 'Comprador Verificado'}</strong>
-                <span class="text-muted extra-small" style="font-size: 0.75rem;">${r.fecha}</span>
+    const listaHTML = resenas.map(r => {
+        const cal = parseInt(r.calificacion, 10) || 5;
+        const estrellas = '★'.repeat(cal) + '☆'.repeat(Math.max(0, 5 - cal));
+        return `
+            <div class="border-bottom py-3">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <strong class="small">${r.usuario?.nombre || 'Comprador Verificado'}</strong>
+                    <span class="text-muted extra-small" style="font-size: 0.75rem;">${r.fecha}</span>
+                </div>
+                <div class="text-warning mb-1">${estrellas}</div>
+                <p class="small text-secondary mb-0">${r.comentario}</p>
             </div>
-            <div class="text-warning mb-1">${'★'.repeat(r.calificacion)}${'☆'.repeat(5 - r.calificacion)}</div>
-            <p class="small text-secondary mb-0">${r.comentario}</p>
-        </div>
-    `).join('') || '<p class="text-muted small py-2">Este producto aún no cuenta con opiniones.</p>';
+        `;
+    }).join('') || '<p class="text-muted small py-2">Este producto aún no cuenta con opiniones.</p>';
 
     contenedor.innerHTML = `
         <h4 class="h5 fw-bold mb-3">Opiniones de Clientes</h4>
