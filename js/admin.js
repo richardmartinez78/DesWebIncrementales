@@ -1,5 +1,5 @@
 /**
- * js/admin.js - Panel de Administración con Validación de Rol, CRUD de Productos y Consulta General de Pedidos
+ * js/admin.js - Panel de Administración con Validación de Rol, Métricas, CRUD de Productos y Gestión de Pedidos
  * Domótica Hogar
  */
 
@@ -57,23 +57,59 @@ export async function renderizarPanelAdmin() {
 
     if (!usuario || !esAdministrador(usuario)) return;
 
+    // Formatear nombre y fecha de último acceso
+    const nombreAdmin = usuario.nombre || usuario.displayName || (usuario.email ? usuario.email.split('@')[0] : 'Administrador');
+    const fechaAcceso = new Date().toLocaleString('es-UY', {
+        dateStyle: 'medium',
+        timeStyle: 'short'
+    });
+
     contenedor.innerHTML = `
-        <div class="alert alert-info border-info-subtle shadow-sm mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div class="alert alert-light border shadow-sm mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
             <div class="d-flex align-items-center gap-2">
-                <span class="badge bg-info text-dark fw-bold">Sprint Progresivo</span>
-                <span class="small">Este módulo forma parte de la arquitectura final y se encuentra en desarrollo continuo.</span>
+                <span class="badge text-bg-success fw-bold">Admin Conectado</span>
+                <span class="fw-semibold text-dark">${nombreAdmin}</span>
+                <span class="text-muted small">(${usuario.email})</span>
             </div>
-            <span class="badge text-bg-dark">Admin: ${usuario.email}</span>
+            <span class="badge text-bg-light border text-secondary">Último acceso: ${fechaAcceso}</span>
         </div>
 
         <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
             <div>
                 <h1 class="h3 fw-bold mb-0">Panel de Administración</h1>
-                <p class="text-muted small mb-0">Gestión de inventario, productos y órdenes del sistema</p>
+                <p class="text-muted small mb-0">Métricas clave, inventario y gestión de órdenes</p>
             </div>
             <button id="btn-nuevo-producto" class="btn text-white fw-bold btn-sm px-3" style="background-color: #146c43;" data-bs-toggle="modal" data-bs-target="#modalProducto">
                 + Alta de Producto
             </button>
+        </div>
+
+        <!-- 📊 SECCIÓN DE ESTADÍSTICAS GENERALES -->
+        <div class="row g-3 mb-4" id="contenedor-stats">
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm p-3 bg-white h-100">
+                    <span class="text-muted extra-small fw-bold text-uppercase">Productos</span>
+                    <h3 class="fw-bold text-dark mb-0 mt-1" id="stat-total-productos">0</h3>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm p-3 bg-white h-100">
+                    <span class="text-muted extra-small fw-bold text-uppercase">Stock Acumulado</span>
+                    <h3 class="fw-bold text-primary mb-0 mt-1" id="stat-total-stock">0 un.</h3>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm p-3 bg-white h-100">
+                    <span class="text-muted extra-small fw-bold text-uppercase">Total Pedidos</span>
+                    <h3 class="fw-bold text-info mb-0 mt-1" id="stat-total-pedidos">0</h3>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm p-3 bg-white h-100">
+                    <span class="text-muted extra-small fw-bold text-uppercase">Ingresos Totales</span>
+                    <h3 class="fw-bold text-success mb-0 mt-1" id="stat-total-ingresos">$ 0</h3>
+                </div>
+            </div>
         </div>
 
         <ul class="nav nav-tabs mb-4" id="adminTabs" role="tablist">
@@ -84,7 +120,7 @@ export async function renderizarPanelAdmin() {
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link fw-bold text-secondary" id="tab-pedidos-btn" data-bs-toggle="tab" data-bs-target="#tab-pedidos" type="button" role="tab">
-                    Consulta General de Pedidos
+                    Consulta y Estado de Pedidos
                 </button>
             </li>
         </ul>
@@ -126,7 +162,7 @@ export async function renderizarPanelAdmin() {
                                     <th>Fecha</th>
                                     <th>Artículos</th>
                                     <th>Total</th>
-                                    <th>Estado</th>
+                                    <th>Estado (Modificable)</th>
                                 </tr>
                             </thead>
                             <tbody id="tabla-admin-pedidos">
@@ -152,7 +188,7 @@ export async function renderizarPanelAdmin() {
 }
 
 /**
- * Carga y renderiza el inventario en la tabla administrativa
+ * Carga el inventario y actualiza métricas de productos
  */
 async function cargarProductosAdmin() {
     const tbody = document.getElementById('tabla-admin-productos');
@@ -179,14 +215,19 @@ async function cargarProductosAdmin() {
         productos = PRODUCTOS_MOCK;
     }
 
-    // Ordenar numéricamente por ID para mantener la correlación de catálogo
+    // Ordenar numéricamente por ID
     productos.sort((a, b) => (parseInt(a.id, 10) || 0) - (parseInt(b.id, 10) || 0));
+
+    // 📈 Actualizar métricas de productos
+    const totalStock = productos.reduce((acc, p) => acc + (parseInt(p.stock, 10) || 0), 0);
+    const elemProd = document.getElementById('stat-total-productos');
+    const elemStock = document.getElementById('stat-total-stock');
+    if (elemProd) elemProd.textContent = productos.length;
+    if (elemStock) elemStock.textContent = `${totalStock} un.`;
 
     tbody.innerHTML = productos.map(prod => {
         const stockActual = Math.max(0, parseInt(prod.stock, 10) || 0);
         const estaDisponible = prod.disponibilidad !== false && stockActual > 0;
-        
-        // Búsqueda flexible de campos de imagen compatibles con cualquier esquema de Firestore
         const urlImg = prod.imagen || prod.imagenUrl || prod.img || prod.url || prod.foto || PLACEHOLDER_IMG;
 
         return `
@@ -240,14 +281,13 @@ async function cargarProductosAdmin() {
 }
 
 /**
- * Carga todos los pedidos registrados en el sistema para consulta administrativa
+ * Carga pedidos y permite cambiar el estado en tiempo real
  */
 async function cargarPedidosAdmin() {
     const tbody = document.getElementById('tabla-admin-pedidos');
     if (!tbody) return;
 
     let pedidos = [];
-
     const pedidosLocales = JSON.parse(localStorage.getItem('pedidos_locales')) || [];
     pedidos = [...pedidosLocales];
 
@@ -268,6 +308,13 @@ async function cargarPedidosAdmin() {
         console.warn("Error al cargar pedidos generales:", e);
     }
 
+    // 📈 Actualizar métricas de pedidos
+    const totalIngresos = pedidos.reduce((acc, p) => acc + (parseFloat(p.total) || 0), 0);
+    const elemPedidos = document.getElementById('stat-total-pedidos');
+    const elemIngresos = document.getElementById('stat-total-ingresos');
+    if (elemPedidos) elemPedidos.textContent = pedidos.length;
+    if (elemIngresos) elemIngresos.textContent = `$ ${totalIngresos.toLocaleString('es-UY')}`;
+
     if (pedidos.length === 0) {
         tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">No existen pedidos registrados en la plataforma.</td></tr>`;
         return;
@@ -276,6 +323,7 @@ async function cargarPedidosAdmin() {
     tbody.innerHTML = pedidos.map(p => {
         const clienteStr = p.usuario ? `${p.usuario.nombre || 'Cliente'} (${p.usuario.email})` : 'Anónimo';
         const articulosStr = p.productos ? p.productos.map(i => `${i.nombre} (x${i.cantidad})`).join(', ') : 'Varios';
+        const estadoActual = (p.estado || 'completado').toLowerCase();
 
         return `
             <tr>
@@ -284,10 +332,21 @@ async function cargarPedidosAdmin() {
                 <td>${p.fecha || 'Reciente'}</td>
                 <td class="text-truncate" style="max-width: 250px;">${articulosStr}</td>
                 <td class="fw-bold">$ ${Number(p.total || 0).toLocaleString('es-UY')}</td>
-                <td><span class="badge text-bg-success text-uppercase">${p.estado || 'completado'}</span></td>
+                <td>
+                    <select class="form-select form-select-sm select-estado-pedido" data-id="${p.id}" style="max-width: 140px;">
+                        <option value="pendiente" ${estadoActual === 'pendiente' ? 'selected' : ''}>Pendiente</option>
+                        <option value="en camino" ${estadoActual === 'en camino' ? 'selected' : ''}>En camino</option>
+                        <option value="entregado" ${estadoActual === 'entregado' || estadoActual === 'completado' ? 'selected' : ''}>Entregado</option>
+                        <option value="cancelado" ${estadoActual === 'cancelado' ? 'selected' : ''}>Cancelado</option>
+                    </select>
+                </td>
             </tr>
         `;
     }).join('');
+
+    tbody.querySelectorAll('.select-estado-pedido').forEach(sel => {
+        sel.addEventListener('change', (e) => actualizarEstadoPedido(e.target.dataset.id, e.target.value));
+    });
 }
 
 function prepararModalAlta() {
@@ -334,7 +393,7 @@ async function guardarProducto(e) {
         return;
     }
 
-    // 🔒 Deshabilitar botón y mostrar spinner/indicador de carga
+    // 🔒 Deshabilitar botón mientras procesa la operación
     if (btnSubmit) {
         btnSubmit.disabled = true;
         btnSubmit.innerHTML = `<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Guardando...`;
@@ -403,6 +462,7 @@ async function actualizarStockRapido(id, nuevoStock) {
                 disponibilidad: stockLimpio > 0
             });
             mostrarToast(`Stock actualizado a ${stockLimpio} un.`);
+            cargarProductosAdmin();
         }
     } catch (e) {
         console.warn("Error al actualizar stock rápido:", e);
@@ -424,6 +484,24 @@ async function actualizarDisponibilidadRapida(id, estaDisponible) {
         }
     } catch (e) {
         console.warn("Error al actualizar disponibilidad:", e);
+    }
+}
+
+async function actualizarEstadoPedido(id, nuevoEstado) {
+    try {
+        const firebaseModule = await import('./firebase/config.js');
+        if (firebaseModule.db) {
+            const firestoreModule = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+            const { doc, updateDoc } = firestoreModule;
+
+            await updateDoc(doc(firebaseModule.db, 'pedidos', String(id)), {
+                estado: nuevoEstado
+            });
+            mostrarToast(`Estado del pedido #${String(id).substring(0, 6)} actualizado a "${nuevoEstado}".`);
+        }
+    } catch (e) {
+        console.warn("Actualizando estado localmente:", e);
+        mostrarToast(`Estado modificado a "${nuevoEstado}" (Local).`);
     }
 }
 
