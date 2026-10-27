@@ -256,8 +256,8 @@ async function cargarProductosAdmin() {
                     </div>
                 </td>
                 <td class="text-end">
-                    <button class="btn btn-outline-primary btn-sm btn-editar-prod me-1" data-id="${prod.id}">Editar</button>
-                    <button class="btn btn-outline-danger btn-sm btn-eliminar-prod" data-id="${prod.id}">Eliminar</button>
+                    <button class="btn btn-primary btn-sm text-white fw-bold btn-editar-prod me-1 px-2" data-id="${prod.id}">Editar</button>
+                    <button class="btn btn-danger btn-sm text-white fw-bold btn-eliminar-prod px-2" data-id="${prod.id}">Eliminar</button>
                 </td>
             </tr>
         `;

@@ -81,10 +81,48 @@
         </div>
     </main>
 
+    <!-- Modal para Registro de Usuario -->
+    <div class="modal fade" id="modalRegistro" tabindex="-1" aria-labelledby="modalRegistroLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title fw-bold" id="modalRegistroLabel">Crear Cuenta en Domótica Hogar</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <form id="form-registro-usuario">
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label for="reg-nombre" class="form-label small fw-bold">Nombre Completo</label>
+                            <input type="text" class="form-control" id="reg-nombre" placeholder="Ej: Juan Pérez" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="reg-email" class="form-label small fw-bold">Correo Electrónico</label>
+                            <input type="email" class="form-control" id="reg-email" placeholder="nombre@ejemplo.com" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="reg-password" class="form-label small fw-bold">Contraseña</label>
+                            <input type="password" class="form-control" id="reg-password" placeholder="Mínimo 6 caracteres" minlength="6" required>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="reg-terminos" required>
+                            <label class="form-check-label small text-secondary" for="reg-terminos">
+                                Acepto los <a href="terminos.html" target="_blank" class="text-success fw-bold">Términos y Condiciones</a>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success btn-sm fw-bold px-3">Registrarse</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer Estándar de Index -->
     <footer class="footer py-4 mt-auto">
         <div class="container d-flex justify-content-between flex-wrap gap-2 text-center text-md-start">
-            <span>© 2026 Domótica Hogar · Sprint 3</span>
+            <span>© 2026 Domótica Hogar · Sprint 4</span>
             <span>Richard Martínez</span> 
             <span>Uso de imágenes solo con fines educativos. Derechos reservados a sus titulares.</span>
         </div>

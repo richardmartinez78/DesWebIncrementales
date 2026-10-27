@@ -55,7 +55,7 @@ export function actualizarAuthNav() {
         if (usuario) {
             authContainer.innerHTML = `
                 <span class="text-light me-2 small d-none d-md-inline">Hola, ${usuario.nombre || 'Usuario'}</span>
-                <button id="btn-logout-nav" class="btn btn-outline-danger btn-sm rounded-pill px-3">Salir</button>
+                <button id="btn-logout-nav" class="btn btn-danger btn-sm text-white fw-bold rounded-pill px-3 shadow-sm">Salir</button>
             `;
             
             document.getElementById('btn-logout-nav')?.addEventListener('click', () => {

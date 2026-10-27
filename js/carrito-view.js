@@ -185,6 +185,16 @@ async function procesarCompra() {
     if (carrito.length === 0) return;
 
     const usuario = obtenerSesion();
+
+    // 🔒 VALIDACIÓN DE AUTENTICACIÓN: Preserva los productos en localStorage y solicita sesión
+    if (!usuario) {
+        mostrarToast('⚠️ Debes iniciar sesión o registrarte para completar la compra.', 'error');
+        setTimeout(() => {
+            window.location.href = 'perfil.html';
+        }, 1000);
+        return;
+    }
+
     const btnFinalizar = document.getElementById('btn-finalizar-compra');
 
     try {
@@ -199,7 +209,7 @@ async function procesarCompra() {
             id: `PED-${Date.now()}`,
             fecha: new Date().toLocaleDateString('es-UY', { day: '2-digit', month: '2-digit', year: 'numeric' }),
             fechaIso: new Date().toISOString(),
-            usuario: usuario || { email: 'invitado@domoticao.com', nombre: 'Invitado' },
+            usuario: usuario,
             productos: carrito.map(item => ({
                 id: item.id,
                 nombre: item.nombre,
