@@ -1,5 +1,5 @@
 /**
- * js/admin.js - Panel de Administración con Validación de Rol, Métricas, CRUD de Productos y Gestión de Pedidos
+ * js/admin.js - Panel de Administración con Validación de Rol, Métricas, CRUD de Productos, Pedidos, Usuarios y Reseñas
  * Domótica Hogar
  */
 
@@ -112,20 +112,33 @@ export async function renderizarPanelAdmin() {
             </div>
         </div>
 
+        <!-- 🗂️ PESTAÑAS DE NAVEGACIÓN -->
         <ul class="nav nav-tabs mb-4" id="adminTabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active fw-bold text-success" id="tab-productos-btn" data-bs-toggle="tab" data-bs-target="#tab-productos" type="button" role="tab">
-                    Gestión de Productos
+                    <i class="bi bi-box-seam me-1"></i> Productos
                 </button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link fw-bold text-secondary" id="tab-pedidos-btn" data-bs-toggle="tab" data-bs-target="#tab-pedidos" type="button" role="tab">
-                    Consulta y Estado de Pedidos
+                    <i class="bi bi-cart-check me-1"></i> Pedidos
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold text-secondary" id="tab-usuarios-btn" data-bs-toggle="tab" data-bs-target="#tab-usuarios" type="button" role="tab">
+                    <i class="bi bi-people me-1"></i> Gestión de Usuarios
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold text-secondary" id="tab-resenas-btn" data-bs-toggle="tab" data-bs-target="#tab-resenas" type="button" role="tab">
+                    <i class="bi bi-chat-left-text me-1"></i> Moderación de Reseñas
                 </button>
             </li>
         </ul>
 
         <div class="tab-content" id="adminTabsContent">
+            
+            <!-- TAB 1: GESTIÓN DE PRODUCTOS -->
             <div class="tab-pane fade show active" id="tab-productos" role="tabpanel">
                 <div class="card border-0 shadow-sm p-3 bg-white">
                     <div class="table-responsive">
@@ -151,6 +164,7 @@ export async function renderizarPanelAdmin() {
                 </div>
             </div>
 
+            <!-- TAB 2: CONSULTA DE PEDIDOS -->
             <div class="tab-pane fade" id="tab-pedidos" role="tabpanel">
                 <div class="card border-0 shadow-sm p-3 bg-white">
                     <div class="table-responsive">
@@ -174,6 +188,52 @@ export async function renderizarPanelAdmin() {
                     </div>
                 </div>
             </div>
+
+            <!-- TAB 3: GESTIÓN DE USUARIOS -->
+            <div class="tab-pane fade" id="tab-usuarios" role="tabpanel">
+                <div class="card border-0 shadow-sm p-4 bg-white">
+                    <h2 class="h5 fw-bold mb-3">Usuarios Registrados</h2>
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Email</th>
+                                    <th>Rol Actual</th>
+                                    <th class="text-end">Acción / Cambiar Rol</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-usuarios-body">
+                                <tr><td colspan="4" class="text-center py-4 text-muted">Cargando usuarios...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: MODERACIÓN DE RESEÑAS -->
+            <div class="tab-pane fade" id="tab-resenas" role="tabpanel">
+                <div class="card border-0 shadow-sm p-4 bg-white">
+                    <h2 class="h5 fw-bold mb-3">Comentarios y Reseñas</h2>
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Producto ID</th>
+                                    <th>Usuario</th>
+                                    <th>Comentario</th>
+                                    <th>Calificación</th>
+                                    <th class="text-end">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-resenas-body">
+                                <tr><td colspan="5" class="text-center py-4 text-muted">Cargando comentarios...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
         </div>
     `;
 
@@ -185,6 +245,8 @@ export async function renderizarPanelAdmin() {
 
     cargarProductosAdmin();
     cargarPedidosAdmin();
+    cargarUsuariosAdmin();
+    cargarResenasAdmin();
 }
 
 /**
@@ -348,6 +410,144 @@ async function cargarPedidosAdmin() {
         sel.addEventListener('change', (e) => actualizarEstadoPedido(e.target.dataset.id, e.target.value));
     });
 }
+
+/**
+ * Carga usuarios desde Firestore y permite administrar roles
+ */
+async function cargarUsuariosAdmin() {
+    const tbody = document.getElementById('tabla-usuarios-body');
+    if (!tbody) return;
+
+    try {
+        const firebaseModule = await import('./firebase/config.js');
+        if (firebaseModule.db) {
+            const firestoreModule = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+            const { collection, getDocs, doc, updateDoc } = firestoreModule;
+
+            const snap = await getDocs(collection(firebaseModule.db, 'usuarios'));
+            
+            if (snap.empty) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-muted">No se encontraron usuarios registrados.</td></tr>';
+                return;
+            }
+
+            let usuariosHTML = '';
+            snap.forEach(docSnap => {
+                const u = docSnap.data();
+                const id = docSnap.id;
+                const esAdmin = (u.rol === 'admin');
+
+                usuariosHTML += `
+                    <tr>
+                        <td><strong class="d-block">${u.nombre || 'Sin Nombre'}</strong></td>
+                        <td>${u.email || 'Sin Email'}</td>
+                        <td><span class="badge ${esAdmin ? 'text-bg-success' : 'text-bg-secondary'}">${(u.rol || 'cliente').toUpperCase()}</span></td>
+                        <td class="text-end">
+                            <select class="form-select form-select-sm select-rol-usuario d-inline-block" style="width: auto;" data-id="${id}">
+                                <option value="cliente" ${!esAdmin ? 'selected' : ''}>Cliente</option>
+                                <option value="admin" ${esAdmin ? 'selected' : ''}>Admin</option>
+                            </select>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = usuariosHTML;
+
+            // Escuchar cambios de roles
+            tbody.querySelectorAll('.select-rol-usuario').forEach(sel => {
+                sel.addEventListener('change', async (e) => {
+                    const userId = e.target.dataset.id;
+                    const nuevoRol = e.target.value;
+                    try {
+                        await updateDoc(doc(firebaseModule.db, 'usuarios', userId), { rol: nuevoRol });
+                        mostrarToast(`El rol del usuario ha sido actualizado a ${nuevoRol.toUpperCase()}`);
+                        cargarUsuariosAdmin(); // Recargar visualmente
+                    } catch (error) {
+                        console.error('Error al cambiar rol:', error);
+                        mostrarToast('Error al actualizar el rol de usuario.', true);
+                    }
+                });
+            });
+        }
+    } catch (e) {
+        console.warn("Error al cargar usuarios de base de datos:", e);
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-muted">No se pudo cargar la base de usuarios.</td></tr>';
+    }
+}
+
+/**
+ * Carga reseñas desde Firestore y permite eliminarlas/moderarlas
+ */
+async function cargarResenasAdmin() {
+    const tbody = document.getElementById('tabla-resenas-body');
+    if (!tbody) return;
+
+    try {
+        const firebaseModule = await import('./firebase/config.js');
+        if (firebaseModule.db) {
+            const firestoreModule = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+            const { collection, getDocs, doc, deleteDoc } = firestoreModule;
+
+            const snap = await getDocs(collection(firebaseModule.db, 'resenas'));
+            
+            if (snap.empty) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">No existen reseñas registradas.</td></tr>';
+                return;
+            }
+
+            let resenasHTML = '';
+            snap.forEach(docSnap => {
+                const r = docSnap.data();
+                const id = docSnap.id;
+                
+                // Generador simple de estrellas basado en la calificación
+                let estrellas = '';
+                const calificacion = parseInt(r.calificacion, 10) || 5;
+                for (let i = 1; i <= 5; i++) {
+                    estrellas += `<i class="bi bi-star-fill ${i <= calificacion ? 'text-warning' : 'text-secondary'}"></i>`;
+                }
+
+                resenasHTML += `
+                    <tr>
+                        <td><strong class="text-muted">#${r.productoId || '-'}</strong></td>
+                        <td>${r.usuarioNombre || r.usuarioEmail || 'Usuario Anónimo'}</td>
+                        <td class="text-wrap" style="max-width: 250px;"><em>"${r.comentario || 'Sin comentario'}"</em></td>
+                        <td>${estrellas}</td>
+                        <td class="text-end">
+                            <button class="btn btn-danger btn-sm text-white fw-bold btn-eliminar-resena px-2" data-id="${id}">
+                                <i class="bi bi-trash"></i> Eliminar
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = resenasHTML;
+
+            // Escuchar eventos de eliminación
+            tbody.querySelectorAll('.btn-eliminar-resena').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    if (!confirm('¿Estás seguro/a de eliminar permanentemente esta reseña?')) return;
+                    
+                    const resenaId = e.currentTarget.dataset.id;
+                    try {
+                        await deleteDoc(doc(firebaseModule.db, 'resenas', resenaId));
+                        mostrarToast('La reseña fue eliminada con éxito.');
+                        cargarResenasAdmin(); // Refrescar visualmente
+                    } catch (error) {
+                        console.error('Error al eliminar reseña:', error);
+                        mostrarToast('Ocurrió un error al intentar eliminar la reseña.', true);
+                    }
+                });
+            });
+        }
+    } catch (e) {
+        console.warn("Error al cargar reseñas:", e);
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">No se pudo obtener el registro de reseñas.</td></tr>';
+    }
+}
+
 
 function prepararModalAlta() {
     document.getElementById('modalProductoLabel').textContent = 'Alta de Nuevo Producto';
