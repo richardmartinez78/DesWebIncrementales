@@ -1,5 +1,5 @@
 /**
- * js/admin.js - Panel de Administración con Validación de Rol, Métricas, CRUD de Productos, Pedidos, Usuarios y Reseñas
+ * js/admin.js - Panel de Administración con Control Estricto de Stock y Disponibilidad
  * Domótica Hogar
  */
 
@@ -13,7 +13,7 @@ const PLACEHOLDER_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000
 const ERROR_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='45' height='45' viewBox='0 0 45 45'%3E%3Crect width='100%25' height='100%25' fill='%23fff5f5'/%3E%3Ctext x='50%25' y='50%25' font-family='sans-serif' font-size='10' fill='%23dc3545' text-anchor='middle' dy='.3em'%3EError%3E%3C/text%3E%3C/svg%3E";
 
 // =====================================================================
-// 🛡️ GUARDIÁN DE SEGURIDAD (PRIMERA LÍNEA DE EJECUCIÓN)
+// 🛡️ GUARDIÁN DE SEGURIDAD (VERIFICACIÓN DE ACCESO DE ROL)
 // =====================================================================
 const _sesionActiva = obtenerSesion();
 const _esAdmin = _sesionActiva && (
@@ -57,7 +57,6 @@ export async function renderizarPanelAdmin() {
 
     if (!usuario || !esAdministrador(usuario)) return;
 
-    // Formatear nombre y fecha de último acceso
     const nombreAdmin = usuario.nombre || usuario.displayName || (usuario.email ? usuario.email.split('@')[0] : 'Administrador');
     const fechaAcceso = new Date().toLocaleString('es-UY', {
         dateStyle: 'medium',
@@ -112,7 +111,7 @@ export async function renderizarPanelAdmin() {
             </div>
         </div>
 
-        <!-- 🗂️ PESTAÑAS DE NAVEGACIÓN -->
+<!-- 🗂️ PESTAÑAS DE NAVEGACIÓN -->
         <ul class="nav nav-tabs mb-4" id="adminTabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active fw-bold text-success" id="tab-productos-btn" data-bs-toggle="tab" data-bs-target="#tab-productos" type="button" role="tab">
@@ -120,17 +119,17 @@ export async function renderizarPanelAdmin() {
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link fw-bold text-secondary" id="tab-pedidos-btn" data-bs-toggle="tab" data-bs-target="#tab-pedidos" type="button" role="tab">
+                <button class="nav-link fw-bold text-success" id="tab-pedidos-btn" data-bs-toggle="tab" data-bs-target="#tab-pedidos" type="button" role="tab">
                     <i class="bi bi-cart-check me-1"></i> Pedidos
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link fw-bold text-secondary" id="tab-usuarios-btn" data-bs-toggle="tab" data-bs-target="#tab-usuarios" type="button" role="tab">
+                <button class="nav-link fw-bold text-success" id="tab-usuarios-btn" data-bs-toggle="tab" data-bs-target="#tab-usuarios" type="button" role="tab">
                     <i class="bi bi-people me-1"></i> Gestión de Usuarios
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link fw-bold text-secondary" id="tab-resenas-btn" data-bs-toggle="tab" data-bs-target="#tab-resenas" type="button" role="tab">
+                <button class="nav-link fw-bold text-success" id="tab-resenas-btn" data-bs-toggle="tab" data-bs-target="#tab-resenas" type="button" role="tab">
                     <i class="bi bi-chat-left-text me-1"></i> Moderación de Reseñas
                 </button>
             </li>
@@ -277,10 +276,8 @@ async function cargarProductosAdmin() {
         productos = PRODUCTOS_MOCK;
     }
 
-    // Ordenar numéricamente por ID
     productos.sort((a, b) => (parseInt(a.id, 10) || 0) - (parseInt(b.id, 10) || 0));
 
-    // 📈 Actualizar métricas de productos
     const totalStock = productos.reduce((acc, p) => acc + (parseInt(p.stock, 10) || 0), 0);
     const elemProd = document.getElementById('stat-total-productos');
     const elemStock = document.getElementById('stat-total-stock');
@@ -313,7 +310,11 @@ async function cargarProductosAdmin() {
                 </td>
                 <td>
                     <div class="form-check form-switch">
-                        <input class="form-check-input switch-dispo-rapido" type="checkbox" data-id="${prod.id}" ${estaDisponible ? 'checked' : ''}>
+                        <input class="form-check-input switch-dispo-rapido" 
+                               type="checkbox" 
+                               data-id="${prod.id}" 
+                               data-stock="${stockActual}" 
+                               ${estaDisponible ? 'checked' : ''}>
                         <span class="badge ${estaDisponible ? 'text-bg-success' : 'text-bg-secondary'}">${estaDisponible ? 'Activo' : 'Baja'}</span>
                     </div>
                 </td>
@@ -330,7 +331,10 @@ async function cargarProductosAdmin() {
     });
 
     tbody.querySelectorAll('.switch-dispo-rapido').forEach(sw => {
-        sw.addEventListener('change', (e) => actualizarDisponibilidadRapida(e.target.dataset.id, e.target.checked));
+        sw.addEventListener('change', (e) => {
+            const stockActual = parseInt(e.target.dataset.stock, 10) || 0;
+            actualizarDisponibilidadRapida(e.target.dataset.id, e.target.checked, stockActual);
+        });
     });
 
     tbody.querySelectorAll('.btn-editar-prod').forEach(btn => {
@@ -370,7 +374,6 @@ async function cargarPedidosAdmin() {
         console.warn("Error al cargar pedidos generales:", e);
     }
 
-    // 📈 Actualizar métricas de pedidos
     const totalIngresos = pedidos.reduce((acc, p) => acc + (parseFloat(p.total) || 0), 0);
     const elemPedidos = document.getElementById('stat-total-pedidos');
     const elemIngresos = document.getElementById('stat-total-ingresos');
@@ -454,7 +457,6 @@ async function cargarUsuariosAdmin() {
 
             tbody.innerHTML = usuariosHTML;
 
-            // Escuchar cambios de roles
             tbody.querySelectorAll('.select-rol-usuario').forEach(sel => {
                 sel.addEventListener('change', async (e) => {
                     const userId = e.target.dataset.id;
@@ -462,7 +464,7 @@ async function cargarUsuariosAdmin() {
                     try {
                         await updateDoc(doc(firebaseModule.db, 'usuarios', userId), { rol: nuevoRol });
                         mostrarToast(`El rol del usuario ha sido actualizado a ${nuevoRol.toUpperCase()}`);
-                        cargarUsuariosAdmin(); // Recargar visualmente
+                        cargarUsuariosAdmin();
                     } catch (error) {
                         console.error('Error al cambiar rol:', error);
                         mostrarToast('Error al actualizar el rol de usuario.', true);
@@ -501,7 +503,6 @@ async function cargarResenasAdmin() {
                 const r = docSnap.data();
                 const id = docSnap.id;
                 
-                // Generador simple de estrellas basado en la calificación
                 let estrellas = '';
                 const calificacion = parseInt(r.calificacion, 10) || 5;
                 for (let i = 1; i <= 5; i++) {
@@ -525,7 +526,6 @@ async function cargarResenasAdmin() {
 
             tbody.innerHTML = resenasHTML;
 
-            // Escuchar eventos de eliminación
             tbody.querySelectorAll('.btn-eliminar-resena').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
                     if (!confirm('¿Estás seguro/a de eliminar permanentemente esta reseña?')) return;
@@ -534,7 +534,7 @@ async function cargarResenasAdmin() {
                     try {
                         await deleteDoc(doc(firebaseModule.db, 'resenas', resenaId));
                         mostrarToast('La reseña fue eliminada con éxito.');
-                        cargarResenasAdmin(); // Refrescar visualmente
+                        cargarResenasAdmin();
                     } catch (error) {
                         console.error('Error al eliminar reseña:', error);
                         mostrarToast('Ocurrió un error al intentar eliminar la reseña.', true);
@@ -547,7 +547,6 @@ async function cargarResenasAdmin() {
         tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-muted">No se pudo obtener el registro de reseñas.</td></tr>';
     }
 }
-
 
 function prepararModalAlta() {
     document.getElementById('modalProductoLabel').textContent = 'Alta de Nuevo Producto';
@@ -566,13 +565,16 @@ function abrirEdicionProducto(id, listaProductos) {
     document.getElementById('prod-form-categoria').value = prod.categoria || 'Seguridad';
     document.getElementById('prod-form-precio').value = prod.precio || 0;
     document.getElementById('prod-form-stock').value = Math.max(0, parseInt(prod.stock, 10) || 0);
-    document.getElementById('prod-form-disponible').checked = prod.disponibilidad !== false;
+    document.getElementById('prod-form-disponible').checked = prod.disponibilidad !== false && (parseInt(prod.stock, 10) || 0) > 0;
     document.getElementById('prod-form-imagen').value = prod.imagen || prod.imagenUrl || prod.img || prod.url || prod.foto || '';
     document.getElementById('prod-form-descripcion').value = prod.descripcion || '';
 
     if (modalBS) modalBS.show();
 }
 
+/**
+ * Guarda o actualiza un producto garantizando la sincronía entre disponibilidad y stock
+ */
 async function guardarProducto(e) {
     e.preventDefault();
 
@@ -583,8 +585,15 @@ async function guardarProducto(e) {
     const nombre = document.getElementById('prod-form-nombre').value.trim();
     const categoria = document.getElementById('prod-form-categoria').value;
     const precio = parseFloat(document.getElementById('prod-form-precio').value) || 0;
-    const stock = Math.max(0, parseInt(document.getElementById('prod-form-stock').value, 10) || 0);
-    const disponibilidad = document.getElementById('prod-form-disponible').checked;
+    
+    const stockInput = parseInt(document.getElementById('prod-form-stock').value, 10);
+    let stock = isNaN(stockInput) ? 0 : Math.max(0, stockInput);
+    
+    const switchDisponible = document.getElementById('prod-form-disponible').checked;
+
+    let stockFinal = switchDisponible ? stock : 0;
+    let disponibilidadFinal = switchDisponible && stockFinal > 0;
+
     const imagen = document.getElementById('prod-form-imagen').value.trim();
     const descripcion = document.getElementById('prod-form-descripcion').value.trim();
 
@@ -593,7 +602,6 @@ async function guardarProducto(e) {
         return;
     }
 
-    // 🔒 Deshabilitar botón mientras procesa la operación
     if (btnSubmit) {
         btnSubmit.disabled = true;
         btnSubmit.innerHTML = `<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Guardando...`;
@@ -605,7 +613,6 @@ async function guardarProducto(e) {
             const firestoreModule = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
             const { doc, setDoc, collection, getDocs } = firestoreModule;
 
-            // Si es un producto nuevo, calcular el ID numérico correlativo (11, 12, 13...)
             if (!id) {
                 const snap = await getDocs(collection(firebaseModule.db, 'productos'));
                 let maxId = 0;
@@ -623,8 +630,8 @@ async function guardarProducto(e) {
                 nombre,
                 categoria,
                 precio,
-                stock,
-                disponibilidad: disponibilidad && stock > 0,
+                stock: stockFinal,
+                disponibilidad: disponibilidadFinal,
                 imagen,
                 imagenUrl: imagen,
                 descripcion
@@ -637,7 +644,6 @@ async function guardarProducto(e) {
         console.warn("Guardando producto en almacenamiento local:", err);
         mostrarToast('Operación guardada en respaldo local.');
     } finally {
-        // 🔓 Restaurar botón al finalizar el proceso
         if (btnSubmit) {
             btnSubmit.disabled = false;
             btnSubmit.innerHTML = textoOriginal;
@@ -648,8 +654,12 @@ async function guardarProducto(e) {
     cargarProductosAdmin();
 }
 
+/**
+ * Actualiza el stock de forma rápida desde la tabla e invalida disponibilidad si llega a 0
+ */
 async function actualizarStockRapido(id, nuevoStock) {
     const stockLimpio = Math.max(0, parseInt(nuevoStock, 10) || 0);
+    const estaDisponible = stockLimpio > 0;
 
     try {
         const firebaseModule = await import('./firebase/config.js');
@@ -659,9 +669,9 @@ async function actualizarStockRapido(id, nuevoStock) {
 
             await updateDoc(doc(firebaseModule.db, 'productos', String(id)), {
                 stock: stockLimpio,
-                disponibilidad: stockLimpio > 0
+                disponibilidad: estaDisponible
             });
-            mostrarToast(`Stock actualizado a ${stockLimpio} un.`);
+            mostrarToast(`Stock actualizado a ${stockLimpio} un. (${estaDisponible ? 'Disponible' : 'Agotado'})`);
             cargarProductosAdmin();
         }
     } catch (e) {
@@ -669,44 +679,56 @@ async function actualizarStockRapido(id, nuevoStock) {
     }
 }
 
-async function actualizarDisponibilidadRapida(id, estaDisponible) {
+/**
+ * Alterna la disponibilidad rápidamente:
+ * - Si intentan activar (activar = true) con stock <= 0, exige usar "Editar" para cargar stock real.
+ * - Si desactivan (activar = false), resetea el stock a 0 en la base de datos.
+ */
+async function actualizarDisponibilidadRapida(id, activar, stockActual) {
+    // Si intentan ACTIVAR desde el switch rápido, pero el stock es 0
+    if (activar === true && stockActual <= 0) {
+        mostrarToast("⚠️ Para activar este producto, debes hacer clic en 'Editar' y agregar stock mayor a 0.", true);
+        // Refrescamos la tabla para que el switch vuelva a la posición "Apagado"
+        cargarProductosAdmin(); 
+        return;
+    }
+
     try {
         const firebaseModule = await import('./firebase/config.js');
         if (firebaseModule.db) {
             const firestoreModule = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
             const { doc, updateDoc } = firestoreModule;
 
-            await updateDoc(doc(firebaseModule.db, 'productos', String(id)), {
-                disponibilidad: estaDisponible
-            });
-            mostrarToast(`Estado de disponibilidad modificado.`);
+            const productoRef = doc(firebaseModule.db, 'productos', String(id));
+            let datosActualizados = { disponibilidad: activar };
+
+            // Si apagan el switch, vaciamos el stock a 0 de emergencia
+            if (activar === false) {
+                datosActualizados.stock = 0;
+            }
+
+            await updateDoc(productoRef, datosActualizados);
+            
+            mostrarToast(
+                activar 
+                    ? `Producto #${id} activado correctamente.` 
+                    : `Producto #${id} desactivado (Stock en 0).`
+            );
+
             cargarProductosAdmin();
         }
-    } catch (e) {
-        console.warn("Error al actualizar disponibilidad:", e);
+    } catch (error) {
+        console.error("Error al actualizar disponibilidad rápida:", error);
+        mostrarToast("Ocurrió un error al intentar cambiar la disponibilidad.", true);
+        cargarProductosAdmin();
     }
 }
 
-async function actualizarEstadoPedido(id, nuevoEstado) {
-    try {
-        const firebaseModule = await import('./firebase/config.js');
-        if (firebaseModule.db) {
-            const firestoreModule = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
-            const { doc, updateDoc } = firestoreModule;
-
-            await updateDoc(doc(firebaseModule.db, 'pedidos', String(id)), {
-                estado: nuevoEstado
-            });
-            mostrarToast(`Estado del pedido #${String(id).substring(0, 6)} actualizado a "${nuevoEstado}".`);
-        }
-    } catch (e) {
-        console.warn("Actualizando estado localmente:", e);
-        mostrarToast(`Estado modificado a "${nuevoEstado}" (Local).`);
-    }
-}
-
+/**
+ * Da de baja/elimina permanentemente un producto de la base de datos
+ */
 async function darBajaProducto(id) {
-    if (!confirm(`¿Estás seguro/a de eliminar o dar de baja el producto #${id}?`)) return;
+    if (!confirm(`¿Estás seguro/a de eliminar permanentemente el producto #${id}?`)) return;
 
     try {
         const firebaseModule = await import('./firebase/config.js');
@@ -715,16 +737,44 @@ async function darBajaProducto(id) {
             const { doc, deleteDoc } = firestoreModule;
 
             await deleteDoc(doc(firebaseModule.db, 'productos', String(id)));
-            mostrarToast(`Producto #${id} eliminado del catálogo.`);
+            mostrarToast(`Producto #${id} eliminado con éxito.`);
             cargarProductosAdmin();
         }
     } catch (e) {
-        console.warn("Error al eliminar producto:", e);
+        console.error("Error al eliminar producto:", e);
+        mostrarToast("Ocurrió un error al intentar eliminar el producto.", true);
     }
 }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', renderizarPanelAdmin);
-} else {       
-    renderizarPanelAdmin();
+/**
+ * Actualiza el estado de un pedido (pendiente, en camino, entregado, cancelado)
+ */
+async function actualizarEstadoPedido(id, nuevoEstado) {
+    try {
+        const pedidosLocales = JSON.parse(localStorage.getItem('pedidos_locales')) || [];
+        const idx = pedidosLocales.findIndex(p => String(p.id) === String(id));
+        if (idx !== -1) {
+            pedidosLocales[idx].estado = nuevoEstado;
+            localStorage.setItem('pedidos_locales', JSON.stringify(pedidosLocales));
+        }
+
+        const firebaseModule = await import('./firebase/config.js');
+        if (firebaseModule.db) {
+            const firestoreModule = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+            const { doc, updateDoc } = firestoreModule;
+
+            await updateDoc(doc(firebaseModule.db, 'pedidos', String(id)), { estado: nuevoEstado });
+        }
+        mostrarToast(`Estado del pedido #${String(id).substring(0, 8)} actualizado a "${nuevoEstado.toUpperCase()}".`);
+    } catch (e) {
+        console.warn("Error al actualizar estado del pedido en Firestore:", e);
+        mostrarToast(`Estado actualizado en almacenamiento local.`);
+    }
 }
+
+// Inicialización
+document.addEventListener('DOMContentLoaded', () => {
+    if (document.getElementById('contenedor-admin')) {
+        renderizarPanelAdmin();
+    }
+});
