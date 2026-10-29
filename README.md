@@ -1,3 +1,93 @@
+# Domótica Hogar — (Sprint 4) Final
+
+## 📌 Descripción del Proyecto
+
+**Domótica Hogar** es una plataforma de comercio electrónico especializada en la venta e integración de dispositivos inteligentes para el hogar (seguridad, iluminación, confort, climatización y entretenimiento). 
+
+En este **Sprint 4**, el proyecto alcanza su fase de integración completa entre el **Panel de Administración** y el **Catálogo de Clientes**, respaldados por **Firebase Firestore**. Se ha implementado un modelo estricto de control de inventario basado en la lógica **"Stock-First"**, garantizando que los clientes solo tengan acceso a productos activos y con existencias reales.
+
+---
+
+## 🚀 Funcionalidades Principales
+
+### 🛒 Catálogo de Clientes
+* **Sincronización en Tiempo Real:** Carga de productos directamente desde Firestore con respaldo local (*fallback*).
+* **Filtro de Visibilidad Estricto:** Ocultamiento automático de productos desactivados administrativamente o con stock igual a cero (`stock <= 0`).
+* **Búsqueda y Filtros Dinámicos:** Búsqueda por palabra clave, filtrado por categoría y ordenamiento por precio o nombre.
+* **Badges de Stock Dinámicos:** Etiquetas visuales para stock disponible (`Stock: N un.`), alerta de bajo stock (`¡Últimas N un.!`) o estado agotado.
+
+### 🛡️ Panel de Administración Integrado
+* **Dashboard de Métricas Clave:** Tarjetas estadísticas con indicadores de productos totales, stock acumulado, pedidos recibidos e ingresos acumulados.
+* **Gestión de Inventario (CRUD Completo):**
+  * **Alta y Edición:** Modal para registro y modificación de atributos de productos (nombre, categoría, precio, stock, imagen y descripción).
+  * **Lógica Stock-First:** Desactivar un producto desciende automáticamente su stock a `0`. Activar un producto mediante el switch rápido exige contar con un stock mayor a `0` (vía "Editar").
+  * **Edición Rápida de Stock:** Modificación directa desde la tabla con actualización instantánea en la base de datos.
+  * **Eliminación Definitiva:** Baja lógica y física del inventario en Firestore.
+* **Gestión de Pedidos:** Consulta general de órdenes de compra con capacidad de cambiar estados en tiempo real (*Pendiente*, *En camino*, *Entregado*, *Cancelado*).
+* **Administración de Usuarios:** Listado de usuarios registrados y selector de roles para promover a administradores o asignar rol de cliente.
+* **Moderación de Reseñas:** Panel de auditoría para lectura y eliminación de comentarios y calificaciones enviadas por los usuarios.
+
+---
+
+## 🛠️ Tecnologías y Servicios Utilizados
+
+* **Frontend:** HTML5, CSS3, JavaScript (ES6+ Modules), Bootstrap v5.3.3.
+* **Backend y Base de Datos:** Firebase Cloud Firestore (v10.12.0).
+* **Autenticación:** Firebase Authentication + Gestión de sesiones en `localStorage`.
+* **Diseño y UX:** Bootstrap Icons, Data URI SVG placeholders para tolerancia a fallos de carga de imágenes.
+* **Alojamiento / Despliegue:** GitHub Pages / Firebase Hosting.
+
+---
+
+## 👥 Diferenciación de Roles y Seguridad
+
+| Atributo / Capacidad | Rol Cliente | Rol Administrador |
+| :--- | :---: | :---: |
+| Explorar catálogo y filtrar productos | Sí | Sí |
+| Ver detalle de productos y reseñas | Sí | Sí |
+| Agregar productos al carrito y procesar compra | Sí | Sí |
+| Enlace "Administración" visible en Navbar | No | Sí |
+| Acceso a la ruta `admin.html` | No (Redirección automática) | Sí |
+| Gestión de inventario (CRUD y Stock) | No | Sí |
+| Cambio de estado de pedidos | No | Sí |
+| Cambio de roles de usuarios | No | Sí |
+| Moderación y borrado de reseñas | No | Sí |
+
+### Mecanismos de Seguridad Implementados:
+1. **Guardián de Ruta en Frontend (`admin.js`):** Intercepta el acceso a `admin.html`. Si la sesión activa no posee el rol `admin` o correo autorizado, interrumpe la ejecución del módulo y redirige inmediatamente a `index.html`.
+2. **Navegación Dinámica (`base.js`):** Renderiza el acceso al panel únicamente cuando se detecta un usuario autenticado con privilegios elevados.
+3. **Reglas de Seguridad en Firestore:** Restricción de escrituras en las colecciones `productos`, `pedidos`, `usuarios` y `resenas` exclusivamente a peticiones autenticadas con rol administrativo.
+
+---
+
+## 🔑 Cuentas para Evaluación
+
+Para facilitar el proceso de revisión y testing del evaluador, se han dispuesto las siguientes credenciales exclusivas de prueba:
+
+| Rol | Correo Electrónico | Contraseña | Permisos / Alcance |
+
+| **Administrador** | `admin2@domotica.com` | `AdminPass1212` | Acceso total al Panel de Admin, Métricas, CRUD, Pedidos, Usuarios y Moderación. |
+| **Cliente** | `cliente@gmail.com` | `123456` | Navegación comercial, carrito de compras, perfil y catálogo regular. |
+
+---
+
+## 🌐 Enlace al Sitio Publicado
+
+El proyecto se encuentra desplegado y listo para su uso en el siguiente enlace:
+
+👉 **[Ver Sitio Publicado — Domótica Hogar](https://richardmartinez78.github.io/DesWebIncrementales/)
+
+---
+
+## ⚠️ Limitaciones Conocidas (a mejorar)
+
+1. **Pasarela de Pago Simulada:** El proceso de *checkout* valida el formulario de envío y genera el registro del pedido en Firestore, pero la pasarela de procesamiento de tarjetas opera en modo simulación.
+2. **Persistencia de Sesión Local:** La verificación de rol en el cliente utiliza una combinación de Firebase Auth y `localStorage` para garantizar la fluidez de la UI. En entornos sin conexión, la verificación de administrador depende del último estado cacheado.
+3. **Carga de Imágenes Externa:** Las imágenes del inventario dependen de URLs públicas (ej. Unsplash/HTTPS). En caso de fallo en el enlace remoto, el sistema aplica un gráfico de respaldo SVG Data URI para evitar rupturas de maquetación.
+
+
+
+
 # 🚀 Actualizaciones de la Entrega (Sprint 3)
 
 ## 1. Funcionalidades Incorporadas
